@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Medini Welfare Society — Education &amp; Social Upliftment</title>
+<meta name="description" content="Medini Welfare Society is a non-profit working for social upliftment through education, health and livelihood initiatives.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="header-mount"></div>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-copy">
+      <span class="eyebrow">Medini Welfare Society</span>
+      <h1 id="cms-home-heroHeading">Every child taught is a community <span class="mark">lifted</span>.</h1>
+      <p class="lead" id="cms-home-heroLead">We're a non-profit working in underserved communities to widen access to education, health and livelihood opportunities — one learning center, one scholarship, one family at a time.</p>
+      <div class="hero-actions">
+        <a href="donate.html" class="btn btn-primary">Donate Now</a>
+        <a href="initiatives.html" class="btn btn-outline">See Our Work</a>
+      </div>
+    </div>
+    <div class="hero-art">
+      <img src="images/hero.jpg" alt="Children at a Medini Welfare Society learning center">
+      <div class="hero-stat-chip">
+        <div><b>1,400+</b><span>Children in education programs</span></div>
+        <div><b>12</b><span>Active learning centers</span></div>
+        <div><b>11 yrs</b><span>Working on the ground</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ LEDGER STRIP ============ -->
+<section class="ledger">
+  <div class="wrap">
+    <div class="ledger-item"><b>1,400+</b><span>Children supported in education</span></div>
+    <div class="ledger-item"><b>310</b><span>Girls in scholarship program</span></div>
+    <div class="ledger-item"><b>640</b><span>Vocational course graduates</span></div>
+    <div class="ledger-item"><b>5,200</b><span>Children health-screened / yr</span></div>
+  </div>
+</section>
+
+<!-- ============ INTRO ============ -->
+<section class="section">
+  <div class="wrap">
+    <div class="section-head center">
+      <span class="eyebrow">Our Mission</span>
+      <h2 id="cms-home-missionHeading">We believe upliftment starts with access.</h2>
+      <p class="muted" id="cms-home-missionText">Medini Welfare Society runs education, health and livelihood programs across underserved communities, working directly with families and local partners so support reaches the people who need it — and stays accountable to the people who give it.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FEATURED INITIATIVES ============ -->
+<section class="section alt">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">What We Do</span>
+      <h2>Featured initiatives</h2>
+    </div>
+    <div class="grid-3" id="featured-initiatives"><!-- filled by JS --></div>
+    <div class="center mt-40">
+      <a href="initiatives.html" class="btn btn-outline">View all initiatives</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ QUOTE ============ -->
+<section class="section">
+  <div class="wrap">
+    <blockquote class="quote-block">
+      “Before the learning center opened, my daughter studied by candlelight after the shop closed. Now she has a quiet room, a tutor, and a library card.”
+      <cite>— Parent, Karjat learning center</cite>
+    </blockquote>
+  </div>
+</section>
+
+<!-- ============ LATEST BLOG ============ -->
+<section class="section alt">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">From the Field</span>
+      <h2>Latest stories</h2>
+    </div>
+    <div class="grid-3" id="latest-posts"><!-- filled by JS --></div>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section class="section">
+  <div class="wrap">
+    <div class="cta-band">
+      <div>
+        <h2>Your support funds the next learning center.</h2>
+        <p style="color:#eef3ee;max-width:46ch;">Every contribution goes directly toward programs on the ground — see our annual report for the full breakdown.</p>
+      </div>
+      <div class="flex-gap">
+        <a href="donate.html" class="btn btn-primary">Donate</a>
+        <a href="volunteer.html" class="btn" style="border:1px solid #fff;color:#fff;">Volunteer</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="footer-mount"></div>
+
+<script src="js/site.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="js/firebase.js"></script>
+<script>
+  mountChrome('home');
+  applyPageContent('home'); // overrides text above with anything saved via admin.html → Page Content
+
+  loadJSON('data/initiatives.json').then(items => {
+    const top = items.slice(0,3);
+    document.getElementById('featured-initiatives').innerHTML = top.map((it,i) => `
+      <div class="card">
+        <img src="${it.image}" alt="${it.title}">
+        <span class="tag">${it.category}</span>
+        <h3>${it.title}</h3>
+        <p class="muted">${it.summary}</p>
+        <a href="initiative.html?slug=${it.slug}" class="btn-ghost">Read more →</a>
+      </div>
+    `).join('');
+  }).catch(()=>{ document.getElementById('featured-initiatives').innerHTML = '<p class="muted">Initiatives will appear here.</p>'; });
+
+  loadJSON('data/blog.json').then(posts => {
+    const latest = posts.slice(0,3);
+    document.getElementById('latest-posts').innerHTML = latest.map(p => `
+      <div class="card post-card">
+        <img src="${p.image}" alt="${p.title}">
+        <div class="meta"><span>${fmtDate(p.date)}</span><span>${p.category}</span></div>
+        <h3><a href="post.html?slug=${p.slug}">${p.title}</a></h3>
+        <p class="muted">${p.excerpt}</p>
+      </div>
+    `).join('');
+  }).catch(()=>{ document.getElementById('latest-posts').innerHTML = '<p class="muted">Blog posts will appear here.</p>'; });
+</script>
+</body>
+</html>
