@@ -31,6 +31,8 @@ body{
   color:var(--charcoal);
   background:var(--paper);
   line-height:1.6;
+  overflow-wrap:break-word;
+  word-break:break-word;
 }
 img{max-width:100%;display:block;}
 a{color:inherit;text-decoration:none;}
