@@ -135,12 +135,18 @@ p{margin:0 0 1em;}
 .btn-ghost{color:var(--leaf);font-weight:600;}
 
 /* ---------- HERO ---------- */
-.hero{
+/* .hero{
   padding:90px 0 70px;
   background:
     repeating-linear-gradient(to bottom, transparent 0 38px, var(--rule) 38px 39px) ,
     var(--paper);
   background-size:100% 39px;
+  position:relative;
+} */
+
+.hero{
+  padding:90px 0 70px;
+  background:var(--paper);
   position:relative;
 }
 .hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center;}
