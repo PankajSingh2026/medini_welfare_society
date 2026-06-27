@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Medini Welfare Society</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .admin-shell{display:none;}
+  .login-shell{display:flex;min-height:70vh;align-items:center;justify-content:center;}
+  .post-row{
+    display:flex;justify-content:space-between;align-items:center;gap:16px;
+    background:var(--white);border:1px solid var(--rule);border-radius:12px;
+    padding:16px 20px;margin-bottom:10px;
+  }
+  .post-row .meta{font-family:var(--mono);font-size:.78rem;color:#777;}
+  .editor-toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;}
+  .editor-toolbar button{
+    border:1px solid var(--rule);background:var(--paper);border-radius:6px;
+    padding:6px 10px;font-size:.85rem;cursor:pointer;font-family:var(--body);
+  }
+  .editor-toolbar button:hover{background:var(--paper-dim);}
+  #bodyEditor{
+    min-height:240px;border:1px solid var(--rule);border-radius:10px;
+    padding:14px;background:var(--white);font-family:var(--body);font-size:.95rem;
+    overflow-y:auto;
+  }
+  #bodyEditor:focus{outline:2px solid var(--leaf);}
+</style>
+</head>
+<body>
+<div id="header-mount"></div>
+
+<!-- ============ LOGIN ============ -->
+<section class="section login-shell" id="loginShell">
+  <div class="wrap" style="max-width:420px;">
+    <form class="box" id="loginForm">
+      <h2 style="margin:0;">Admin Login</h2>
+      <p class="muted" style="margin:0;font-size:.9rem;">Sign in to manage blog posts.</p>
+      <div><label for="loginEmail">Email</label><input id="loginEmail" type="email" required></div>
+      <div><label for="loginPassword">Password</label><input id="loginPassword" type="password" required></div>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">Sign in</button>
+      <p class="form-status" id="loginStatus" style="color:#c0392b;"></p>
+      <p class="form-note">Admin accounts are created in the Firebase console, not on this page — see README.</p>
+    </form>
+  </div>
+</section>
+
+<!-- ============ ADMIN DASHBOARD ============ -->
+<section class="section admin-shell" id="adminShell">
+  <div class="wrap">
+    <div class="flex-gap" style="justify-content:space-between;align-items:center;margin-bottom:30px;">
+      <div>
+        <span class="eyebrow">Admin</span>
+        <h1 style="margin:0;">Manage blog posts</h1>
+      </div>
+      <div class="flex-gap">
+        <span class="muted" id="whoami" style="align-self:center;font-size:.9rem;"></span>
+        <button class="btn btn-outline" id="logoutBtn">Sign out</button>
+      </div>
+    </div>
+
+    <div class="grid-2" style="align-items:flex-start;">
+      <!-- Post list -->
+      <div>
+        <h3>Existing posts</h3>
+        <button class="btn btn-primary" id="newPostBtn" style="margin-bottom:18px;">+ New post</button>
+        <div id="postsList"><p class="muted">Loading…</p></div>
+      </div>
+
+      <!-- Editor -->
+      <div>
+        <h3 id="editorTitle">New post</h3>
+        <form class="box" id="postForm">
+          <div><label for="pTitle">Title</label><input id="pTitle" required></div>
+          <div class="form-row">
+            <div><label for="pSlug">URL slug</label><input id="pSlug" placeholder="my-post-title" required></div>
+            <div><label for="pDate">Date</label><input id="pDate" type="date" required></div>
+          </div>
+          <div class="form-row">
+            <div><label for="pAuthor">Author</label><input id="pAuthor" required></div>
+            <div><label for="pCategory">Category</label><input id="pCategory" placeholder="Update / Impact / Education..." required></div>
+          </div>
+          <div><label for="pImage">Image URL</label><input id="pImage" placeholder="images/blog-4.jpg or https://..."></div>
+          <div><label for="pExcerpt">Excerpt (short summary shown on cards)</label><textarea id="pExcerpt" rows="2" required></textarea></div>
+
+          <div>
+            <label>Body</label>
+            <div class="editor-toolbar">
+              <button type="button" data-cmd="bold"><b>B</b></button>
+              <button type="button" data-cmd="italic"><i>I</i></button>
+              <button type="button" data-cmd="formatBlock" data-val="h3">H3</button>
+              <button type="button" data-cmd="insertUnorderedList">• List</button>
+              <button type="button" data-cmd="createLink">Link</button>
+              <button type="button" data-cmd="formatBlock" data-val="p">¶ Paragraph</button>
+            </div>
+            <div id="bodyEditor" contenteditable="true"></div>
+            <p class="form-note">Use the toolbar above to format text — this is saved as the post body.</p>
+          </div>
+
+          <div class="flex-gap">
+            <button type="submit" class="btn btn-primary">Save post</button>
+            <button type="button" class="btn btn-outline" id="cancelEditBtn">Clear / New</button>
+          </div>
+          <p class="form-status" id="postStatus"></p>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="footer-mount"></div>
+<script src="js/site.js"></script>
+
+<!-- Firebase SDKs (compat build — simplest for plain HTML/JS sites) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="js/firebase.js"></script>
+
+<script>
+mountChrome('');
+
+const loginShell = document.getElementById('loginShell');
+const adminShell = document.getElementById('adminShell');
+const loginForm = document.getElementById('loginForm');
+const loginStatus = document.getElementById('loginStatus');
+const logoutBtn = document.getElementById('logoutBtn');
+const whoami = document.getElementById('whoami');
+
+loginForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  loginStatus.textContent = '';
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+  adminLogin(email, password).catch(err => {
+    loginStatus.textContent = "Login failed — check your email and password.";
+  });
+});
+
+logoutBtn.addEventListener('click', () => adminLogout());
+
+onAdminAuthChange(user => {
+  if(user){
+    loginShell.style.display = 'none';
+    adminShell.style.display = 'block';
+    whoami.textContent = 'Signed in as ' + user.email;
+    refreshPostsList();
+  } else {
+    loginShell.style.display = 'flex';
+    adminShell.style.display = 'none';
+  }
+});
+
+// ---------- POST EDITOR ----------
+
+const postForm = document.getElementById('postForm');
+const postsList = document.getElementById('postsList');
+const editorTitle = document.getElementById('editorTitle');
+const bodyEditor = document.getElementById('bodyEditor');
+const postStatus = document.getElementById('postStatus');
+let editingId = null;
+
+document.querySelectorAll('.editor-toolbar button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const cmd = btn.dataset.cmd;
+    const val = btn.dataset.val || null;
+    if(cmd === 'createLink'){
+      const url = prompt('Link URL:');
+      if(url) document.execCommand(cmd, false, url);
+    } else {
+      document.execCommand(cmd, false, val);
+    }
+    bodyEditor.focus();
+  });
+});
+
+function resetForm(){
+  editingId = null;
+  editorTitle.textContent = 'New post';
+  postForm.reset();
+  bodyEditor.innerHTML = '';
+  postStatus.textContent = '';
+}
+
+document.getElementById('newPostBtn').addEventListener('click', resetForm);
+document.getElementById('cancelEditBtn').addEventListener('click', resetForm);
+
+async function refreshPostsList(){
+  postsList.innerHTML = '<p class="muted">Loading…</p>';
+  try{
+    const posts = await fetchPostsFromDB();
+    if(posts.length === 0){
+      postsList.innerHTML = '<p class="muted">No posts yet — create your first one.</p>';
+      return;
+    }
+    postsList.innerHTML = posts.map(p => `
+      <div class="post-row">
+        <div>
+          <strong>${p.title}</strong><br>
+          <span class="meta">${p.date} · ${p.category}</span>
+        </div>
+        <div class="flex-gap">
+          <button class="btn btn-outline" style="padding:6px 14px;font-size:.85rem;" data-edit="${p.id}">Edit</button>
+          <button class="btn btn-outline" style="padding:6px 14px;font-size:.85rem;color:#c0392b;border-color:#c0392b;" data-del="${p.id}">Delete</button>
+        </div>
+      </div>
+    `).join('');
+
+    postsList.querySelectorAll('[data-edit]').forEach(btn => {
+      btn.addEventListener('click', () => loadPostIntoForm(posts.find(p => p.id === btn.dataset.edit)));
+    });
+    postsList.querySelectorAll('[data-del]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if(confirm('Delete this post? This cannot be undone.')){
+          await deletePostFromDB(btn.dataset.del);
+          refreshPostsList();
+        }
+      });
+    });
+  } catch(err){
+    postsList.innerHTML = '<p class="muted">Could not load posts. Check your Firebase setup (see README).</p>';
+  }
+}
+
+function loadPostIntoForm(p){
+  editingId = p.id;
+  editorTitle.textContent = 'Editing: ' + p.title;
+  document.getElementById('pTitle').value = p.title;
+  document.getElementById('pSlug').value = p.slug;
+  document.getElementById('pDate').value = p.date;
+  document.getElementById('pAuthor').value = p.author;
+  document.getElementById('pCategory').value = p.category;
+  document.getElementById('pImage').value = p.image || '';
+  document.getElementById('pExcerpt').value = p.excerpt;
+  bodyEditor.innerHTML = p.body || '';
+  window.scrollTo({top: 0, behavior:'smooth'});
+}
+
+postForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  postStatus.style.color = 'var(--leaf)';
+  postStatus.textContent = 'Saving…';
+
+  const post = {
+    title: document.getElementById('pTitle').value.trim(),
+    slug: document.getElementById('pSlug').value.trim().toLowerCase().replace(/\s+/g,'-'),
+    date: document.getElementById('pDate').value,
+    author: document.getElementById('pAuthor').value.trim(),
+    category: document.getElementById('pCategory').value.trim(),
+    image: document.getElementById('pImage').value.trim() || 'images/blog-1.jpg',
+    excerpt: document.getElementById('pExcerpt').value.trim(),
+    body: bodyEditor.innerHTML
+  };
+
+  try{
+    await savePostToDB(post, editingId);
+    postStatus.textContent = 'Saved.';
+    resetForm();
+    refreshPostsList();
+  } catch(err){
+    postStatus.style.color = '#c0392b';
+    postStatus.textContent = 'Could not save — check your Firebase setup (see README).';
+  }
+});
+</script>
+</body>
+</html>

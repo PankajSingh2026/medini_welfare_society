@@ -17,12 +17,14 @@
 
 <div id="footer-mount"></div>
 <script src="js/site.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="js/firebase.js"></script>
 <script>
   mountChrome('blog');
 
-  const slug = new URLSearchParams(location.search).get('slug');
-  loadJSON('data/blog.json').then(posts => {
-    const p = posts.find(x => x.slug === slug) || posts[0];
+  function renderPost(p){
     document.title = p.title + ' — Medini Welfare Society';
     document.querySelector('#post-content .wrap').innerHTML = `
       <span class="eyebrow">${p.category}</span>
@@ -32,9 +34,19 @@
       ${p.body}
       <div class="mt-40"><a href="blog.html" class="btn btn-outline">← Back to blog</a></div>
     `;
-  }).catch(()=>{
-    document.querySelector('#post-content .wrap').innerHTML = '<p class="muted">Could not load this post.</p>';
-  });
+  }
+
+  const slug = new URLSearchParams(location.search).get('slug');
+
+  fetchPostBySlugFromDB(slug)
+    .then(p => {
+      if(p) return renderPost(p);
+      return loadJSON('data/blog.json').then(posts => renderPost(posts.find(x => x.slug === slug) || posts[0]));
+    })
+    .catch(() => loadJSON('data/blog.json').then(posts => renderPost(posts.find(x => x.slug === slug) || posts[0])))
+    .catch(()=>{
+      document.querySelector('#post-content .wrap').innerHTML = '<p class="muted">Could not load this post.</p>';
+    });
 </script>
 </body>
 </html>
