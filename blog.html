@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog — Medini Welfare Society</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="header-mount"></div>
+
+<section class="page-head">
+  <div class="wrap">
+    <span class="eyebrow">Blog</span>
+    <h1>Stories and updates from the field.</h1>
+    <p class="lead muted" style="max-width:60ch;">Field notes, program updates and impact stories from across our work.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="grid-3" id="post-list"></div>
+  </div>
+</section>
+
+<div id="footer-mount"></div>
+<script src="js/site.js"></script>
+<script>
+  mountChrome('blog');
+  loadJSON('data/blog.json').then(posts => {
+    posts.sort((a,b) => new Date(b.date) - new Date(a.date));
+    document.getElementById('post-list').innerHTML = posts.map(p => `
+      <div class="card post-card">
+        <img src="${p.image}" alt="${p.title}">
+        <div class="meta"><span>${fmtDate(p.date)}</span><span>${p.category}</span><span>By ${p.author}</span></div>
+        <h3><a href="post.html?slug=${p.slug}">${p.title}</a></h3>
+        <p class="muted">${p.excerpt}</p>
+        <a href="post.html?slug=${p.slug}" class="btn-ghost">Read story →</a>
+      </div>
+    `).join('');
+  }).catch(()=>{ document.getElementById('post-list').innerHTML = '<p class="muted">Could not load posts.</p>'; });
+</script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Post — Medini Welfare Society</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="header-mount"></div>
+
+<section class="section" id="post-content">
+  <div class="wrap post-body">
+    <p class="muted">Loading…</p>
+  </div>
+</section>
+
+<div id="footer-mount"></div>
+<script src="js/site.js"></script>
+<script>
+  mountChrome('blog');
+
+  const slug = new URLSearchParams(location.search).get('slug');
+  loadJSON('data/blog.json').then(posts => {
+    const p = posts.find(x => x.slug === slug) || posts[0];
+    document.title = p.title + ' — Medini Welfare Society';
+    document.querySelector('#post-content .wrap').innerHTML = `
+      <span class="eyebrow">${p.category}</span>
+      <h1>${p.title}</h1>
+      <p class="post-hero-meta">${fmtDate(p.date)} · By ${p.author}</p>
+      <img src="${p.image}" alt="${p.title}">
+      ${p.body}
+      <div class="mt-40"><a href="blog.html" class="btn btn-outline">← Back to blog</a></div>
+    `;
+  }).catch(()=>{
+    document.querySelector('#post-content .wrap').innerHTML = '<p class="muted">Could not load this post.</p>';
+  });
+</script>
+</body>
+</html>
