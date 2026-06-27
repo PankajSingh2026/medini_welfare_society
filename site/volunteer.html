@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Volunteer — Medini Welfare Society</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="header-mount"></div>
+
+<section class="page-head">
+  <div class="wrap">
+    <span class="eyebrow">Get Involved</span>
+    <h1>Volunteer with Medini Welfare Society.</h1>
+    <p class="lead muted" style="max-width:60ch;">We're always looking for tutors, healthcare volunteers, and people who can help with events and outreach.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap grid-2">
+    <div>
+      <h2>How volunteers help</h2>
+      <p>Most of our volunteers work directly in learning centers as tutors, support health camps as medical or logistics volunteers, or help coordinate events and donor outreach. We ask for a minimum 3-month commitment for tutoring roles so children have a consistent presence.</p>
+      <p>We provide orientation and basic training before any volunteer starts working directly with children or community members, including a background check for child-facing roles.</p>
+    </div>
+    <form class="box" id="volunteerForm">
+      <h3 style="margin:0;">Apply to volunteer</h3>
+      <div class="form-row">
+        <div><label for="vName">Full name</label><input id="vName" required></div>
+        <div><label for="vPhone">Phone</label><input id="vPhone" type="tel" required></div>
+      </div>
+      <div><label for="vEmail">Email</label><input id="vEmail" type="email" required></div>
+      <div>
+        <label for="vArea">Area of interest</label>
+        <select id="vArea">
+          <option>Tutoring / Education</option>
+          <option>Health camps</option>
+          <option>Events &amp; outreach</option>
+          <option>Skills training</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div><label for="vMsg">Tell us a bit about yourself</label><textarea id="vMsg" rows="4"></textarea></div>
+      <button type="submit" class="btn btn-primary">Submit application</button>
+      <p class="form-status" id="vStatus"></p>
+      <p class="form-note">See README for instructions on connecting this form to receive real submissions.</p>
+    </form>
+  </div>
+</section>
+
+<div id="footer-mount"></div>
+<script src="js/site.js"></script>
+<script>
+  mountChrome('volunteer');
+  wireForm('volunteerForm', 'vStatus');
+</script>
+</body>
+</html>
