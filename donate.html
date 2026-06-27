@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Donate — Medini Welfare Society</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="header-mount"></div>
+
+<section class="page-head">
+  <div class="wrap">
+    <span class="eyebrow">Donate</span>
+    <h1>Your contribution funds real, ongoing work.</h1>
+    <p class="lead muted" style="max-width:60ch;">Every rupee is tracked against a program. Donations are eligible for tax deduction under Section 80G.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap grid-2">
+    <div>
+      <h2>Where your money goes</h2>
+      <div class="card" style="margin-bottom:16px;">
+        <h3>₹500</h3>
+        <p class="muted">Supplies a child with books and stationery for one term at a learning center.</p>
+      </div>
+      <div class="card" style="margin-bottom:16px;">
+        <h3>₹2,500</h3>
+        <p class="muted">Covers one girl's school fees and transport for a month under the scholarship program.</p>
+      </div>
+      <div class="card">
+        <h3>₹10,000</h3>
+        <p class="muted">Funds a full health and nutrition camp for one village.</p>
+      </div>
+    </div>
+    <div>
+      <h2>Make a donation</h2>
+      <div class="card">
+        <p class="muted">Pay directly via UPI — pick an amount or enter your own, then either tap the button on your phone or scan the QR code.</p>
+
+        <div class="flex-gap" id="upiAmounts" style="margin:14px 0;">
+          <button type="button" class="btn btn-outline upi-amt" data-amt="500" style="padding:8px 16px;font-size:.85rem;">₹500</button>
+          <button type="button" class="btn btn-outline upi-amt" data-amt="2500" style="padding:8px 16px;font-size:.85rem;">₹2,500</button>
+          <button type="button" class="btn btn-outline upi-amt" data-amt="10000" style="padding:8px 16px;font-size:.85rem;">₹10,000</button>
+        </div>
+        <label for="upiCustomAmt">Or enter an amount (₹)</label>
+        <input type="number" id="upiCustomAmt" min="1" placeholder="e.g. 1000">
+
+        <a href="#" id="upiPayBtn" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:14px;">Pay via UPI app</a>
+
+        <div class="center" style="margin-top:18px;">
+          <img id="upiQr" alt="UPI QR code" style="width:170px;height:170px;border-radius:10px;border:1px solid var(--rule);">
+          <p class="form-note" style="margin-top:8px;">Or scan this QR code with any UPI app</p>
+        </div>
+
+        <p class="form-note" style="margin-top:16px;color:#b65;"><strong>Note:</strong> the UPI ID below is a placeholder — replace it with your real UPI ID in <code>donate.html</code> (search for <code>UPI_ID</code>) before going live.</p>
+        <p class="form-note" style="margin-top:10px;">Prefer a bank transfer, or want an 80G receipt? Email <a href="mailto:contact@mediniwelfare.org" style="text-decoration:underline;">contact@mediniwelfare.org</a>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  // EDIT THESE TWO VALUES with your real UPI ID and payee name
+  const UPI_ID = "medini.welfare@upi";        // <-- replace with your real UPI ID
+  const PAYEE_NAME = "Medini Welfare Society"; // <-- replace if needed
+
+  const amtInput = document.getElementById('upiCustomAmt');
+  const payBtn = document.getElementById('upiPayBtn');
+  const qrImg = document.getElementById('upiQr');
+
+  function buildUpiUrl(amount){
+    const params = new URLSearchParams({
+      pa: UPI_ID,
+      pn: PAYEE_NAME,
+      cu: 'INR'
+    });
+    if(amount) params.set('am', amount);
+    return 'upi://pay?' + params.toString();
+  }
+
+  function refresh(amount){
+    const url = buildUpiUrl(amount);
+    payBtn.href = url;
+    qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(url);
+  }
+
+  document.querySelectorAll('.upi-amt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      amtInput.value = btn.dataset.amt;
+      refresh(btn.dataset.amt);
+    });
+  });
+  amtInput.addEventListener('input', () => refresh(amtInput.value));
+
+  refresh(''); // initial QR with no fixed amount
+})();
+</script>
+
+<section class="section alt">
+  <div class="wrap center">
+    <h2>Transparency, always</h2>
+    <p class="muted" style="max-width:60ch;margin:0 auto 20px;">Every donor receives a receipt and our annual report shows exactly how funds were used across programs.</p>
+    <a href="about.html#reports" class="btn btn-outline">View annual reports</a>
+  </div>
+</section>
+
+<div id="footer-mount"></div>
+<script src="js/site.js"></script>
+<script>mountChrome('donate');</script>
+</body>
+</html>
