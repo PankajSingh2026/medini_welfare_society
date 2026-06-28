@@ -20,7 +20,8 @@ function headerHTML(active){
         <li>${link('team.html','People','team')}</li>
         <li>${link('contact.html','Contact','contact')}</li>
       </ul>
-      <a href="donate.html" class="nav-cta">Donate</a>
+      <button class="lang-switch" id="langSwitch" title="Switch language">हिं / EN</button>
+      <a href="donate.html" class="nav-cta" data-i18n="nav.donate">Donate</a>
     </nav>
   </header>`;
 }
@@ -75,7 +76,7 @@ function mountChrome(active){
   const links = document.getElementById('navLinks');
   if(toggle){
     toggle.addEventListener('click', () => links.classList.toggle('open'));
-  }
+  } initLanguageSwitcher();
 }
 
 function fmtDate(iso){
@@ -101,5 +102,43 @@ function wireForm(formId, statusId){
     status.textContent = "Thank you — we've received your message and will be in touch shortly.";
     status.style.color = 'var(--leaf)';
     form.reset();
+  });
+}
+let translationsCache = null;
+
+async function getTranslations(){
+  if(translationsCache) return translationsCache;
+  translationsCache = await loadJSON('data/translations.json');
+  return translationsCache;
+}
+
+function getCurrentLang(){
+  return localStorage.getItem('medini_lang') || 'en';
+}
+
+async function applyTranslations(lang){
+  let dict;
+  try{
+    const all = await getTranslations();
+    dict = all[lang] || all.en;
+  } catch(err){
+    return;
+  }
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if(dict[key]) el.textContent = dict[key];
+  });
+  document.documentElement.lang = lang === 'hi' ? 'hi' : 'en';
+}
+
+function initLanguageSwitcher(){
+  const btn = document.getElementById('langSwitch');
+  const lang = getCurrentLang();
+  applyTranslations(lang);
+  if(!btn) return;
+  btn.addEventListener('click', () => {
+    const next = getCurrentLang() === 'en' ? 'hi' : 'en';
+    localStorage.setItem('medini_lang', next);
+    applyTranslations(next);
   });
 }
