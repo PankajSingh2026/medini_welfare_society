@@ -52,15 +52,17 @@
   // Re-render with the other language's fields when the header's language switch is used.
   document.addEventListener('medini:langchange', () => { if(currentPosts) renderPosts(currentPosts); });
 
-  // Try the live database first (posts created via admin.html).
-  // Falls back to the bundled data/blog.json if Firebase isn't set up yet,
-  // so the site never breaks before you complete that setup.
+  // Posts come from Firestore only (created/edited/deleted via admin.html).
+  // No static-JSON fallback — an empty database means an empty list, so
+  // deleting a post here always actually removes it from the site.
   fetchPostsFromDB()
     .then(dbPosts => {
-      if(dbPosts.length === 0) return loadJSON('data/blog.json').then(renderPosts);
+      if(dbPosts.length === 0){
+        document.getElementById('post-list').innerHTML = '<p class="muted">No posts yet — check back soon.</p>';
+        return;
+      }
       renderPosts(dbPosts);
     })
-    .catch(() => loadJSON('data/blog.json').then(renderPosts))
     .catch(()=>{ document.getElementById('post-list').innerHTML = '<p class="muted">Could not load posts.</p>'; });
 </script>
 </body>
