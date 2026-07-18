@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notice Corner — Medini Welfare Society</title>
+<meta name="description" content="Announcements and notices from Medini Welfare Society.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="header-mount"></div>
+
+<section class="page-head">
+  <div class="wrap">
+    <span class="eyebrow">Notice Corner</span>
+    <h1>Announcements &amp; updates</h1>
+    <p class="lead muted" style="max-width:60ch;">The latest notices from Medini Welfare Society.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="grid-3" id="notice-list"></div>
+  </div>
+</section>
+
+<div id="footer-mount"></div>
+<script src="js/site.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="js/firebase.js"></script>
+<script>
+  mountChrome('notices');
+
+  function stripHtml(html){
+    const div = document.createElement('div');
+    div.innerHTML = html || '';
+    return div.textContent || div.innerText || '';
+  }
+  function truncate(text, n){
+    text = text.trim();
+    return text.length > n ? text.slice(0, n).trim() + '…' : text;
+  }
+
+  function renderNotices(notices){
+    if(notices.length === 0){
+      document.getElementById('notice-list').innerHTML = '<p class="muted">No notices posted yet.</p>';
+      return;
+    }
+    notices.sort((a,b) => new Date(b.date) - new Date(a.date));
+    document.getElementById('notice-list').innerHTML = notices.map(n => `
+      <div class="card post-card">
+        <div class="meta"><span>${fmtDate(n.date)}</span></div>
+        <h3><a href="notice.html?slug=${n.slug}">${n.headline}</a></h3>
+        <p class="muted">${truncate(stripHtml(n.body), 160)}</p>
+        <a href="notice.html?slug=${n.slug}" class="btn-ghost">Read notice →</a>
+      </div>
+    `).join('');
+  }
+
+  fetchNoticesFromDB()
+    .then(renderNotices)
+    .catch(()=>{ document.getElementById('notice-list').innerHTML = '<p class="muted">Could not load notices.</p>'; });
+</script>
+</body>
+</html>
