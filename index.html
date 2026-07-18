@@ -117,7 +117,7 @@
   mountChrome('home');
   applyPageContent('home'); // overrides text above with anything saved via admin.html → Page Content
 
-  loadJSON('data/initiatives.json').then(items => {
+  function renderFeaturedInitiatives(items){
     const top = items.slice(0,3);
     document.getElementById('featured-initiatives').innerHTML = top.map((it,i) => `
       <div class="card">
@@ -128,10 +128,16 @@
         <a href="initiative.html?slug=${it.slug}" class="btn-ghost">Read more →</a>
       </div>
     `).join('');
-  }).catch(()=>{ document.getElementById('featured-initiatives').innerHTML = '<p class="muted">Initiatives will appear here.</p>'; });
+  }
+  // Try the live database first (initiatives created/edited via admin.html).
+  // Falls back to the bundled data/initiatives.json if Firebase isn't set up yet.
+  fetchInitiativesFromDB()
+    .then(items => items.length ? renderFeaturedInitiatives(items) : loadJSON('data/initiatives.json').then(renderFeaturedInitiatives))
+    .catch(() => loadJSON('data/initiatives.json').then(renderFeaturedInitiatives))
+    .catch(()=>{ document.getElementById('featured-initiatives').innerHTML = '<p class="muted">Initiatives will appear here.</p>'; });
 
-  loadJSON('data/blog.json').then(posts => {
-    const latest = posts.slice(0,3);
+  function renderLatestPosts(posts){
+    const latest = posts.slice().sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0,3);
     document.getElementById('latest-posts').innerHTML = latest.map(p => `
       <div class="card post-card">
         <img src="${p.image}" alt="${p.title}">
@@ -140,7 +146,13 @@
         <p class="muted">${p.excerpt}</p>
       </div>
     `).join('');
-  }).catch(()=>{ document.getElementById('latest-posts').innerHTML = '<p class="muted">Blog posts will appear here.</p>'; });
+  }
+  // Try the live database first (posts created via admin.html).
+  // Falls back to the bundled data/blog.json if Firebase isn't set up yet.
+  fetchPostsFromDB()
+    .then(posts => posts.length ? renderLatestPosts(posts) : loadJSON('data/blog.json').then(renderLatestPosts))
+    .catch(() => loadJSON('data/blog.json').then(renderLatestPosts))
+    .catch(()=>{ document.getElementById('latest-posts').innerHTML = '<p class="muted">Blog posts will appear here.</p>'; });
 </script>
 </body>
 </html>
