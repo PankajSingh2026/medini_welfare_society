@@ -17,6 +17,7 @@ function headerHTML(active){
         <li>${link('about.html','About Us','about')}</li>
         <li>${link('initiatives.html','Initiatives','initiatives')}</li>
         <li>${link('blog.html','Blog','blog')}</li>
+        <li>${link('notices.html','Notices','notices')}</li>
         <li>${link('team.html','People','team')}</li>
         <li>${link('contact.html','Contact','contact')}</li>
       </ul>
@@ -43,6 +44,7 @@ function footerHTML(){
           <a href="about.html">About Us</a>
           <a href="initiatives.html">Initiatives</a>
           <a href="blog.html">Blog</a>
+          <a href="notices.html">Notices</a>
           <a href="team.html">Key Personnel</a>
         </div>
         <div>
