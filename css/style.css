@@ -344,6 +344,19 @@ p{margin:0 0 1em;}
 }
 .quote-block cite{display:block;margin-top:14px;font-family:var(--body);font-size:.85rem;color:#666;font-style:normal;}
 
+/* ---------- QUOTE CAROUSEL ---------- */
+/* Discrete right-to-left slide every 3s (see JS), not a continuous marquee. */
+.quote-carousel-viewport{overflow:hidden;}
+.quote-carousel-track{
+  display:flex;
+  transition:transform .6s cubic-bezier(.4,0,.2,1);
+}
+.quote-carousel-track .quote-block{
+  flex:0 0 100%;
+  max-width:none;
+  box-sizing:border-box;
+}
+
 /* ---------- BLOG ---------- */
 .post-card{display:flex;flex-direction:column;}
 .post-card .meta{font-family:var(--mono);font-size:.75rem;color:#777;display:flex;gap:12px;margin-bottom:4px;}
