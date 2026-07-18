@@ -10,7 +10,7 @@ function headerHTML(active){
   return `
   <header class="site-header">
     <nav class="nav">
-      <a href="index.html" class="brand"><span class="dot"></span> Medini Welfare Society</a>
+      <a href="index.html" class="brand"><img src="images/logo.png" alt="Medini Welfare Society logo" class="brand-logo"> Medini Welfare Society</a>
       <button class="nav-toggle" aria-label="Toggle menu" id="navToggle">☰</button>
       <ul class="nav-links" id="navLinks">
         <li>${link('index.html','Home','home','nav.home')}</li>
