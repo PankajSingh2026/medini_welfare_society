@@ -98,8 +98,8 @@ p{margin:0 0 1em;}
   font-family:var(--display);font-weight:600;font-size:1.2rem;color:var(--ink);
 }
 .brand-logo{
-  width:48px;
-  height:48px;
+  width:58px;
+  height:58px;
   object-fit:contain;
   border-radius:6px;
   flex-shrink:0;
