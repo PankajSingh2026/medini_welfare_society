@@ -11,40 +11,42 @@
 <div id="header-mount"></div>
 <section class="page-head">
   <div class="wrap">
-    <span class="eyebrow">Donate</span>
-    <h1>Your contribution funds real, ongoing work.</h1>
-    <p class="lead muted" style="max-width:60ch;">Every rupee is tracked against a program. Donations are eligible for tax deduction under Section 80G.</p>
+    <span class="eyebrow" data-i18n="nav.donate">Donate</span>
+    <h1 data-i18n="donate.heading">Your contribution funds real, ongoing work.</h1>
+    <p class="lead muted" style="max-width:60ch;" data-i18n="donate.lead">Every rupee is tracked against a program. Donations are eligible for tax deduction under Section 80G.</p>
   </div>
 </section>
 <section class="section">
   <div class="wrap grid-2">
     <div>
-      <h2>Where your money goes</h2>
+      <h2 data-i18n="donate.whereHeading">Where your money goes</h2>
       <div class="card" style="margin-bottom:16px;">
         <h3>₹500</h3>
-        <p class="muted">Supplies a child with books and stationery for one term at a learning center.</p>
+        <p class="muted" data-i18n="donate.card1Desc">Supplies a child with books and stationery for one term at a learning center.</p>
       </div>
       <div class="card" style="margin-bottom:16px;">
         <h3>₹2,500</h3>
-        <p class="muted">Covers one girl's school fees and transport for a month under the scholarship program.</p>
+        <p class="muted" data-i18n="donate.card2Desc">Covers one girl's school fees and transport for a month under the scholarship program.</p>
       </div>
       <div class="card">
         <h3>₹10,000</h3>
-        <p class="muted">Funds a full health and nutrition camp for one village.</p>
+        <p class="muted" data-i18n="donate.card3Desc">Funds a full health and nutrition camp for one village.</p>
       </div>
     </div>
     <div>
-      <h2>Make a donation</h2>
+      <h2 data-i18n="donate.makeHeading">Make a donation</h2>
       <div class="card">
-        <h3>Transfer via bank (NEFT / IMPS / RTGS)</h3>
-        <p class="muted">Use these details from your bank's app or net banking. Tap "Copy" next to any field.</p>
+        <h3 data-i18n="donate.bankHeading">Transfer via bank (NEFT / IMPS / RTGS)</h3>
+        <p class="muted" data-i18n="donate.bankNote">Use these details from your bank's app or net banking. Tap "Copy" next to any field.</p>
         <div id="bankDetails" style="margin-top:12px;"></div>
         <p class="form-note" style="margin-top:16px;color:#b65;"><strong>Note:</strong> the bank details below are placeholders — replace them with your real account details in <code>donate.html</code> (search for <code>BANK_DETAILS</code>) before going live.</p>
-        <p class="form-note" style="margin-top:10px;">Want an 80G receipt? Email <a href="mailto:contact@mediniwelfare.org" style="text-decoration:underline;">contact@mediniwelfare.org</a>.</p>
+        <p class="form-note" style="margin-top:10px;" data-i18n="donate.receiptNote">Want an 80G receipt? Email <a href="mailto:contact@mediniwelfare.org" style="text-decoration:underline;">contact@mediniwelfare.org</a>.</p>
       </div>
     </div>
   </div>
 </section>
+<script src="js/site.js"></script>
+<script>mountChrome('donate');</script>
 <script>
 (function(){
   // EDIT THESE VALUES with your real bank account details
@@ -54,26 +56,43 @@
     "IFSC code": "ABCD0123456",                   // <-- replace with your real IFSC code
     "Bank & branch": "Bank Name, Branch City"      // <-- replace with your real bank and branch
   };
+  // Maps each BANK_DETAILS label to its translation key, so the label (not the
+  // account value itself) shows in Hindi when that language is active.
+  const LABEL_KEYS = {
+    "Account name": "donate.accountName",
+    "Account number": "donate.accountNumber",
+    "IFSC code": "donate.ifscCode",
+    "Bank & branch": "donate.bankBranch"
+  };
   const wrap = document.getElementById('bankDetails');
   if(!wrap) return;
-  Object.entries(BANK_DETAILS).forEach(([label, value]) => {
-    const row = document.createElement('div');
-    row.className = 'flex-gap';
-    row.style.cssText = 'justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--rule);';
-    row.innerHTML =
-      '<span class="muted" style="font-size:.85rem;">' + label + '</span>' +
-      '<span style="display:flex;align-items:center;gap:8px;">' +
-        '<strong>' + value + '</strong>' +
-        '<button type="button" class="btn btn-outline bank-copy" data-value="' + value + '" style="padding:4px 10px;font-size:.75rem;">Copy</button>' +
-      '</span>';
-    wrap.appendChild(row);
-  });
+
+  function renderBankDetails(){
+    wrap.innerHTML = '';
+    Object.entries(BANK_DETAILS).forEach(([label, value]) => {
+      const displayLabel = (tt(LABEL_KEYS[label]) || label);
+      const copyLabel = tt('donate.copyBtn') || 'Copy';
+      const row = document.createElement('div');
+      row.className = 'flex-gap';
+      row.style.cssText = 'justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--rule);';
+      row.innerHTML =
+        '<span class="muted" style="font-size:.85rem;">' + displayLabel + '</span>' +
+        '<span style="display:flex;align-items:center;gap:8px;">' +
+          '<strong>' + value + '</strong>' +
+          '<button type="button" class="btn btn-outline bank-copy" data-value="' + value + '" style="padding:4px 10px;font-size:.75rem;">' + copyLabel + '</button>' +
+        '</span>';
+      wrap.appendChild(row);
+    });
+  }
+  renderBankDetails();
+  document.addEventListener('medini:langchange', renderBankDetails);
+
   wrap.addEventListener('click', function(e){
     const btn = e.target.closest('.bank-copy');
     if(!btn) return;
     navigator.clipboard.writeText(btn.dataset.value).then(() => {
       const original = btn.textContent;
-      btn.textContent = 'Copied';
+      btn.textContent = tt('donate.copiedBtn') || 'Copied';
       setTimeout(() => { btn.textContent = original; }, 1500);
     });
   });
@@ -81,13 +100,11 @@
 </script>
 <section class="section alt">
   <div class="wrap center">
-    <h2>Transparency, always</h2>
-    <p class="muted" style="max-width:60ch;margin:0 auto 20px;">Every donor receives a receipt and our annual report shows exactly how funds were used across programs.</p>
-    <a href="about.html#reports" class="btn btn-outline">View annual reports</a>
+    <h2 data-i18n="donate.transparencyHeading">Transparency, always</h2>
+    <p class="muted" style="max-width:60ch;margin:0 auto 20px;" data-i18n="donate.transparencyText">Every donor receives a receipt and our annual report shows exactly how funds were used across programs.</p>
+    <a href="about.html#reports" class="btn btn-outline" data-i18n="donate.viewReportsBtn">View annual reports</a>
   </div>
 </section>
 <div id="footer-mount"></div>
-<script src="js/site.js"></script>
-<script>mountChrome('donate');</script>
 </body>
 </html>

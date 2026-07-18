@@ -38,7 +38,7 @@
       <p class="post-hero-meta">${fmtDate(p.date)} · By ${p.author}</p>
       <img src="${p.image}" alt="${t(p, 'title')}">
       ${t(p, 'body')}
-      <div class="mt-40"><a href="blog.html" class="btn btn-outline">← Back to blog</a></div>
+      <div class="mt-40"><a href="blog.html" class="btn btn-outline">${tt('post.backToBlog') || '← Back to blog'}</a></div>
     `;
   }
 

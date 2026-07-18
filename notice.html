@@ -39,11 +39,11 @@
       if(text) metaDesc.setAttribute('content', text.length > 160 ? text.slice(0,160).trim() + '…' : text);
     }
     document.querySelector('#notice-content .wrap').innerHTML = `
-      <span class="eyebrow">Notice</span>
+      <span class="eyebrow">${tt('notice.eyebrowLabel') || 'Notice'}</span>
       <h1>${t(n, 'headline')}</h1>
       <p class="post-hero-meta">${fmtDate(n.date)}</p>
       ${bodyText}
-      <div class="mt-40"><a href="notices.html" class="btn btn-outline">← All notices</a></div>
+      <div class="mt-40"><a href="notices.html" class="btn btn-outline">${tt('notice.allNotices') || '← All notices'}</a></div>
     `;
   }
 

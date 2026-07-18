@@ -38,12 +38,12 @@
       <p style="font-size:1.1rem;">${t(it, 'summary')}</p>
       <p>${t(it, 'detail')}</p>
       <div class="card" style="margin-top:24px;">
-        <span class="num">Impact</span>
+        <span class="num">${tt('initiative.impactLabel') || 'Impact'}</span>
         <h3>${it.impact}</h3>
       </div>
       <div class="mt-40">
-        <a href="donate.html" class="btn btn-primary">Support this initiative</a>
-        <a href="initiatives.html" class="btn btn-outline" style="margin-left:12px;">← All initiatives</a>
+        <a href="donate.html" class="btn btn-primary">${tt('initiative.supportBtn') || 'Support this initiative'}</a>
+        <a href="initiatives.html" class="btn btn-outline" style="margin-left:12px;">${tt('initiative.allInitiatives') || '← All initiatives'}</a>
       </div>
     `;
   }

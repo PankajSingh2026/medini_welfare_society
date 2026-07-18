@@ -12,9 +12,9 @@
 
 <section class="page-head">
   <div class="wrap">
-    <span class="eyebrow">Blog</span>
-    <h1>Stories and updates from the field.</h1>
-    <p class="lead muted" style="max-width:60ch;">Field notes, program updates and impact stories from across our work.</p>
+    <span class="eyebrow" data-i18n="nav.blog">Blog</span>
+    <h1 data-i18n="blog.heading">Stories and updates from the field.</h1>
+    <p class="lead muted" style="max-width:60ch;" data-i18n="blog.lead">Field notes, program updates and impact stories from across our work.</p>
   </div>
 </section>
 
@@ -44,7 +44,7 @@
         <div class="meta"><span>${fmtDate(p.date)}</span><span>${p.category}</span><span>By ${p.author}</span></div>
         <h3><a href="post.html?slug=${p.slug}">${t(p, 'title')}</a></h3>
         <p class="muted">${t(p, 'excerpt')}</p>
-        <a href="post.html?slug=${p.slug}" class="btn-ghost">Read story →</a>
+        <a href="post.html?slug=${p.slug}" class="btn-ghost">${tt('common.readStory') || 'Read story →'}</a>
       </div>
     `).join('');
   }

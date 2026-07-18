@@ -12,9 +12,9 @@
 
 <section class="page-head">
   <div class="wrap">
-    <span class="eyebrow">Our Work</span>
-    <h1>Programs built around what each community needs.</h1>
-    <p class="lead muted" style="max-width:60ch;">From after-school learning centers to emergency relief, every initiative is designed with — not just for — the community it serves.</p>
+    <span class="eyebrow" data-i18n="initiatives.eyebrow">Our Work</span>
+    <h1 data-i18n="initiatives.heading">Programs built around what each community needs.</h1>
+    <p class="lead muted" style="max-width:60ch;" data-i18n="initiatives.lead">From after-school learning centers to emergency relief, every initiative is designed with — not just for — the community it serves.</p>
   </div>
 </section>
 
@@ -52,7 +52,7 @@
           <div class="flex-gap"><span class="tag">${it.category}</span><span class="tag" style="background:transparent;border:1px solid var(--rule);">${it.status}</span></div>
           <h3>${t(it, 'title')}</h3>
           <p class="muted">${t(it, 'summary')}</p>
-          <a href="initiative.html?slug=${it.slug}" class="btn-ghost">Read more →</a>
+          <a href="initiative.html?slug=${it.slug}" class="btn-ghost">${tt('common.readMore') || 'Read more →'}</a>
         </div>
       `).join('');
     }

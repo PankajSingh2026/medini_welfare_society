@@ -12,9 +12,9 @@
 
 <section class="page-head">
   <div class="wrap">
-    <span class="eyebrow">Notice Corner</span>
-    <h1>Announcements &amp; updates</h1>
-    <p class="lead muted" style="max-width:60ch;">The latest notices from Medini Welfare Society.</p>
+    <span class="eyebrow" data-i18n="nav.notices">Notice Corner</span>
+    <h1 data-i18n="notices.heading">Announcements &amp; updates</h1>
+    <p class="lead muted" style="max-width:60ch;" data-i18n="notices.lead">The latest notices from Medini Welfare Society.</p>
   </div>
 </section>
 
@@ -48,7 +48,7 @@
   function renderNotices(notices){
     currentNotices = notices;
     if(notices.length === 0){
-      document.getElementById('notice-list').innerHTML = '<p class="muted">No notices posted yet.</p>';
+      document.getElementById('notice-list').innerHTML = '<p class="muted">' + (tt('notices.noneYet') || 'No notices posted yet.') + '</p>';
       return;
     }
     notices.sort((a,b) => new Date(b.date) - new Date(a.date));
@@ -57,7 +57,7 @@
         <div class="meta"><span>${fmtDate(n.date)}</span></div>
         <h3><a href="notice.html?slug=${n.slug}">${t(n, 'headline')}</a></h3>
         <p class="muted">${truncate(stripHtml(t(n, 'body')), 160)}</p>
-        <a href="notice.html?slug=${n.slug}" class="btn-ghost">Read notice →</a>
+        <a href="notice.html?slug=${n.slug}" class="btn-ghost">${tt('common.readNotice') || 'Read notice →'}</a>
       </div>
     `).join('');
   }
