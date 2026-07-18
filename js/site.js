@@ -110,7 +110,7 @@ let translationsCache = null;
 
 async function getTranslations(){
   if(translationsCache) return translationsCache;
-  translationsCache = await loadJSON('data/translations.json');
+  translationsCache = await loadJSON('translations.json');
   return translationsCache;
 }
 
