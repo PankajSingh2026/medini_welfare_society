@@ -80,6 +80,31 @@ async function saveInitiativeToDB(initiative, existingId){
 async function deleteInitiativeFromDB(id){
   await db.collection('initiatives').doc(id).delete();
 }
+// ---------- NOTICE HELPERS (Firestore) ----------
+// Notices live in a Firestore collection called "notices".
+// Each document: { headline, slug, date, body }
+async function fetchNoticesFromDB(){
+  const snap = await db.collection('notices').orderBy('date', 'desc').get();
+  return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+async function fetchNoticeBySlugFromDB(slug){
+  const snap = await db.collection('notices').where('slug', '==', slug).limit(1).get();
+  if(snap.empty) return null;
+  const doc = snap.docs[0];
+  return { id: doc.id, ...doc.data() };
+}
+async function saveNoticeToDB(notice, existingId){
+  if(existingId){
+    await db.collection('notices').doc(existingId).set(notice, { merge: true });
+    return existingId;
+  } else {
+    const ref = await db.collection('notices').add(notice);
+    return ref.id;
+  }
+}
+async function deleteNoticeFromDB(id){
+  await db.collection('notices').doc(id).delete();
+}
 // ---------- PAGE CONTENT HELPERS (editable Home/About/etc. text) ----------
 // Stored in Firestore collection "pages", one document per page (e.g. "home").
 // Each field on the document maps to an element with id="cms-{page}-{field}"
