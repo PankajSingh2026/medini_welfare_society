@@ -51,23 +51,13 @@
   // Re-render with the other language's fields when the header's language switch is used.
   document.addEventListener('medini:langchange', () => { if(currentInitiative) renderInitiative(currentInitiative); });
 
-  // Try the live database first (initiatives created/edited via admin.html).
-  // Falls back to the bundled data/initiatives.json if Firebase isn't set up
-  // yet or has no matching entry, so the page never breaks.
+  // Firestore only — if an initiative was deleted from admin, its page
+  // correctly stops resolving instead of falling back to stale static content.
   fetchInitiativeBySlugFromDB(slug)
     .then(it => {
       if(it) return renderInitiative(it);
-      return loadJSON('data/initiatives.json').then(items => {
-        const fallback = items.find(x => x.slug === slug) || items[0];
-        if(!fallback) throw new Error('No initiative found');
-        renderInitiative(fallback);
-      });
+      document.querySelector('#initiative-content .wrap').innerHTML = '<p class="muted">Could not load this initiative.</p>';
     })
-    .catch(() => loadJSON('data/initiatives.json').then(items => {
-      const fallback = items.find(x => x.slug === slug) || items[0];
-      if(!fallback) throw new Error('No initiative found');
-      renderInitiative(fallback);
-    }))
     .catch(()=>{
       document.querySelector('#initiative-content .wrap').innerHTML = '<p class="muted">Could not load this initiative.</p>';
     });
