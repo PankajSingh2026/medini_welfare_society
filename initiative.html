@@ -8,40 +8,48 @@
 </head>
 <body>
 <div id="header-mount"></div>
-
 <section class="section" id="initiative-content">
   <div class="wrap post-body">
     <p class="muted">Loading…</p>
   </div>
 </section>
-
 <div id="footer-mount"></div>
 <script src="js/site.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="js/firebase.js"></script>
 <script>
   mountChrome('initiatives');
-
   const slug = new URLSearchParams(location.search).get('slug');
-  loadJSON('data/initiatives.json').then(items => {
-    const it = items.find(i => i.slug === slug) || items[0];
-    document.title = it.title + ' — Medini Welfare Society';
-    document.querySelector('#initiative-content .wrap').innerHTML = `
-      <span class="eyebrow">${it.category} · ${it.status}</span>
-      <h1>${it.title}</h1>
-      <img src="${it.image}" alt="${it.title}">
-      <p style="font-size:1.1rem;">${it.summary}</p>
-      <p>${it.detail}</p>
-      <div class="card" style="margin-top:24px;">
-        <span class="num">Impact</span>
-        <h3>${it.impact}</h3>
-      </div>
-      <div class="mt-40">
-        <a href="donate.html" class="btn btn-primary">Support this initiative</a>
-        <a href="initiatives.html" class="btn btn-outline" style="margin-left:12px;">← All initiatives</a>
-      </div>
-    `;
-  }).catch(()=>{
-    document.querySelector('#initiative-content .wrap').innerHTML = '<p class="muted">Could not load this initiative.</p>';
-  });
+  (async function(){
+    try{
+      let it = slug ? await fetchInitiativeBySlugFromDB(slug) : null;
+      if(!it){
+        const all = await fetchInitiativesFromDB();
+        it = all.find(i => i.slug === slug) || all[0];
+      }
+      if(!it) throw new Error('No initiative found');
+      document.title = it.title + ' — Medini Welfare Society';
+      document.querySelector('#initiative-content .wrap').innerHTML = `
+        <span class="eyebrow">${it.category} · ${it.status}</span>
+        <h1>${it.title}</h1>
+        <img src="${it.image}" alt="${it.title}">
+        <p style="font-size:1.1rem;">${it.summary}</p>
+        <p>${it.detail}</p>
+        <div class="card" style="margin-top:24px;">
+          <span class="num">Impact</span>
+          <h3>${it.impact}</h3>
+        </div>
+        <div class="mt-40">
+          <a href="donate.html" class="btn btn-primary">Support this initiative</a>
+          <a href="initiatives.html" class="btn btn-outline" style="margin-left:12px;">← All initiatives</a>
+        </div>
+      `;
+    } catch(err){
+      document.querySelector('#initiative-content .wrap').innerHTML = '<p class="muted">Could not load this initiative.</p>';
+    }
+  })();
 </script>
 </body>
 </html>
