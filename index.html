@@ -79,13 +79,32 @@
   </div>
 </section>
 
-<!-- ============ QUOTE ============ -->
+<!-- ============ QUOTE CAROUSEL ============ -->
+<!-- Steps to the next quote every 3s, sliding right-to-left. The 4th slide is
+     a duplicate of the 1st so the loop can always move left — after it slides
+     into view, we snap silently back to slide 1 with no animation. -->
 <section class="section">
   <div class="wrap">
-    <blockquote class="quote-block">
-      <span data-i18n="home.quoteText">“Before the learning center opened, my daughter studied by candlelight after the shop closed. Now she has a quiet room, a tutor, and a library card.”</span>
-      <cite data-i18n="home.quoteCite">— Parent, Medini Ray learning center</cite>
-    </blockquote>
+    <div class="quote-carousel-viewport">
+      <div class="quote-carousel-track" id="quoteCarouselTrack">
+        <blockquote class="quote-block">
+          <span data-i18n="home.quote1Text">“Before the learning center opened, my daughter studied by candlelight after the shop closed. Now she has a quiet room, a tutor, and a library card.”</span>
+          <cite data-i18n="home.quote1Cite">— Parent, Medini Ray learning center</cite>
+        </blockquote>
+        <blockquote class="quote-block">
+          <span data-i18n="home.quote2Text">“The vocational course gave me the confidence to start my own tailoring business within six months of graduating.”</span>
+          <cite data-i18n="home.quote2Cite">— Graduate, Vocational Skill Development</cite>
+        </blockquote>
+        <blockquote class="quote-block">
+          <span data-i18n="home.quote3Text">“My son used to miss weeks of school every monsoon. Now the health camp catches problems before they become emergencies.”</span>
+          <cite data-i18n="home.quote3Cite">— Parent, Child Health &amp; Nutrition Camp</cite>
+        </blockquote>
+        <blockquote class="quote-block" aria-hidden="true">
+          <span data-i18n="home.quote1Text">“Before the learning center opened, my daughter studied by candlelight after the shop closed. Now she has a quiet room, a tutor, and a library card.”</span>
+          <cite data-i18n="home.quote1Cite">— Parent, Medini Ray learning center</cite>
+        </blockquote>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -307,6 +326,31 @@
       renderLatestPosts(posts);
     })
     .catch(()=>{ document.getElementById('latest-posts').innerHTML = '<p class="muted">Blog posts will appear here.</p>'; });
+
+  // ---------- QUOTE CAROUSEL ----------
+  // Steps to the next quote every 3s with a right-to-left slide (not a
+  // continuous scroll). 3 real quotes + a duplicate of the 1st appended at
+  // the end, so the track always moves left; once the duplicate is fully in
+  // view we snap back to slide 1 with no transition, so the loop is seamless.
+  (function initQuoteCarousel(){
+    const track = document.getElementById('quoteCarouselTrack');
+    if(!track) return;
+    const realSlideCount = track.children.length - 1; // last child is the duplicate
+    let quoteIndex = 0;
+    setInterval(() => {
+      quoteIndex++;
+      track.style.transition = 'transform .6s cubic-bezier(.4,0,.2,1)';
+      track.style.transform = `translateX(-${quoteIndex * 100}%)`;
+      if(quoteIndex === realSlideCount){
+        setTimeout(() => {
+          track.style.transition = 'none';
+          track.offsetHeight; // force reflow so 'none' takes effect before the transform change below
+          quoteIndex = 0;
+          track.style.transform = 'translateX(0%)';
+        }, 650);
+      }
+    }, 3000);
+  })();
 
   // Re-render with the other language's fields when the header's language switch is used.
   document.addEventListener('medini:langchange', () => {
