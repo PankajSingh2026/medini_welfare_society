@@ -22,34 +22,46 @@
 <script>
   mountChrome('initiatives');
   const slug = new URLSearchParams(location.search).get('slug');
-  (async function(){
-    try{
-      let it = slug ? await fetchInitiativeBySlugFromDB(slug) : null;
-      if(!it){
-        const all = await fetchInitiativesFromDB();
-        it = all.find(i => i.slug === slug) || all[0];
-      }
-      if(!it) throw new Error('No initiative found');
-      document.title = it.title + ' — Medini Welfare Society';
-      document.querySelector('#initiative-content .wrap').innerHTML = `
-        <span class="eyebrow">${it.category} · ${it.status}</span>
-        <h1>${it.title}</h1>
-        <img src="${it.image}" alt="${it.title}">
-        <p style="font-size:1.1rem;">${it.summary}</p>
-        <p>${it.detail}</p>
-        <div class="card" style="margin-top:24px;">
-          <span class="num">Impact</span>
-          <h3>${it.impact}</h3>
-        </div>
-        <div class="mt-40">
-          <a href="donate.html" class="btn btn-primary">Support this initiative</a>
-          <a href="initiatives.html" class="btn btn-outline" style="margin-left:12px;">← All initiatives</a>
-        </div>
-      `;
-    } catch(err){
+
+  function renderInitiative(it){
+    document.title = it.title + ' — Medini Welfare Society';
+    document.querySelector('#initiative-content .wrap').innerHTML = `
+      <span class="eyebrow">${it.category} · ${it.status}</span>
+      <h1>${it.title}</h1>
+      <img src="${it.image}" alt="${it.title}">
+      <p style="font-size:1.1rem;">${it.summary}</p>
+      <p>${it.detail}</p>
+      <div class="card" style="margin-top:24px;">
+        <span class="num">Impact</span>
+        <h3>${it.impact}</h3>
+      </div>
+      <div class="mt-40">
+        <a href="donate.html" class="btn btn-primary">Support this initiative</a>
+        <a href="initiatives.html" class="btn btn-outline" style="margin-left:12px;">← All initiatives</a>
+      </div>
+    `;
+  }
+
+  // Try the live database first (initiatives created/edited via admin.html).
+  // Falls back to the bundled data/initiatives.json if Firebase isn't set up
+  // yet or has no matching entry, so the page never breaks.
+  fetchInitiativeBySlugFromDB(slug)
+    .then(it => {
+      if(it) return renderInitiative(it);
+      return loadJSON('data/initiatives.json').then(items => {
+        const fallback = items.find(x => x.slug === slug) || items[0];
+        if(!fallback) throw new Error('No initiative found');
+        renderInitiative(fallback);
+      });
+    })
+    .catch(() => loadJSON('data/initiatives.json').then(items => {
+      const fallback = items.find(x => x.slug === slug) || items[0];
+      if(!fallback) throw new Error('No initiative found');
+      renderInitiative(fallback);
+    }))
+    .catch(()=>{
       document.querySelector('#initiative-content .wrap').innerHTML = '<p class="muted">Could not load this initiative.</p>';
-    }
-  })();
+    });
 </script>
 </body>
 </html>
