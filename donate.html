@@ -8,7 +8,6 @@
 </head>
 <body>
 <div id="header-mount"></div>
-
 <section class="page-head">
   <div class="wrap">
     <span class="eyebrow">Donate</span>
@@ -16,7 +15,6 @@
     <p class="lead muted" style="max-width:60ch;">Every rupee is tracked against a program. Donations are eligible for tax deduction under Section 80G.</p>
   </div>
 </section>
-
 <section class="section">
   <div class="wrap grid-2">
     <div>
@@ -37,68 +35,49 @@
     <div>
       <h2>Make a donation</h2>
       <div class="card">
-        <p class="muted">Pay directly via UPI — pick an amount or enter your own, then either tap the button on your phone or scan the QR code.</p>
-
-        <div class="flex-gap" id="upiAmounts" style="margin:14px 0;">
-          <button type="button" class="btn btn-outline upi-amt" data-amt="500" style="padding:8px 16px;font-size:.85rem;">₹500</button>
-          <button type="button" class="btn btn-outline upi-amt" data-amt="2500" style="padding:8px 16px;font-size:.85rem;">₹2,500</button>
-          <button type="button" class="btn btn-outline upi-amt" data-amt="10000" style="padding:8px 16px;font-size:.85rem;">₹10,000</button>
-        </div>
-        <label for="upiCustomAmt">Or enter an amount (₹)</label>
-        <input type="number" id="upiCustomAmt" min="1" placeholder="e.g. 1000">
-
-        <a href="#" id="upiPayBtn" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:14px;">Pay via UPI app</a>
-
-        <div class="center" style="margin-top:18px;">
-         <!-- <img id="upiQr" alt="UPI QR code" style="width:170px;height:170px;border-radius:10px;border:1px solid var(--rule);">
-          <p class="form-note" style="margin-top:8px;">Or scan this QR code with any UPI app</p> -->
-        </div>
-
-        <p class="form-note" style="margin-top:16px;color:#b65;"><strong>Note:</strong> the UPI ID below is a placeholder — replace it with your real UPI ID in <code>donate.html</code> (search for <code>UPI_ID</code>) before going live.</p>
-        <p class="form-note" style="margin-top:10px;">Prefer a bank transfer, or want an 80G receipt? Email <a href="mailto:contact@mediniwelfare.org" style="text-decoration:underline;">contact@mediniwelfare.org</a>.</p>
+        <h3>Transfer via bank (NEFT / IMPS / RTGS)</h3>
+        <p class="muted">Use these details from your bank's app or net banking. Tap "Copy" next to any field.</p>
+        <div id="bankDetails" style="margin-top:12px;"></div>
+        <p class="form-note" style="margin-top:16px;color:#b65;"><strong>Note:</strong> the bank details below are placeholders — replace them with your real account details in <code>donate.html</code> (search for <code>BANK_DETAILS</code>) before going live.</p>
+        <p class="form-note" style="margin-top:10px;">Want an 80G receipt? Email <a href="mailto:contact@mediniwelfare.org" style="text-decoration:underline;">contact@mediniwelfare.org</a>.</p>
       </div>
     </div>
   </div>
 </section>
-
 <script>
 (function(){
-  // EDIT THESE TWO VALUES with your real UPI ID and payee name
-  const UPI_ID = "medini.welfare@upi";        // <-- replace with your real UPI ID
-  const PAYEE_NAME = "Medini Welfare Society"; // <-- replace if needed
-
-  const amtInput = document.getElementById('upiCustomAmt');
-  const payBtn = document.getElementById('upiPayBtn');
-  const qrImg = document.getElementById('upiQr');
-
-  function buildUpiUrl(amount){
-    const params = new URLSearchParams({
-      pa: UPI_ID,
-      pn: PAYEE_NAME,
-      cu: 'INR'
-    });
-    if(amount) params.set('am', amount);
-    return 'upi://pay?' + params.toString();
-  }
-
-  function refresh(amount){
-    const url = buildUpiUrl(amount);
-    payBtn.href = url;
-    qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(url);
-  }
-
-  document.querySelectorAll('.upi-amt').forEach(btn => {
-    btn.addEventListener('click', () => {
-      amtInput.value = btn.dataset.amt;
-      refresh(btn.dataset.amt);
+  // EDIT THESE VALUES with your real bank account details
+  const BANK_DETAILS = {
+    "Account name": "Medini Welfare Society",   // <-- replace with your real account holder name
+    "Account number": "000000000000",            // <-- replace with your real account number
+    "IFSC code": "ABCD0123456",                   // <-- replace with your real IFSC code
+    "Bank & branch": "Bank Name, Branch City"      // <-- replace with your real bank and branch
+  };
+  const wrap = document.getElementById('bankDetails');
+  if(!wrap) return;
+  Object.entries(BANK_DETAILS).forEach(([label, value]) => {
+    const row = document.createElement('div');
+    row.className = 'flex-gap';
+    row.style.cssText = 'justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--rule);';
+    row.innerHTML =
+      '<span class="muted" style="font-size:.85rem;">' + label + '</span>' +
+      '<span style="display:flex;align-items:center;gap:8px;">' +
+        '<strong>' + value + '</strong>' +
+        '<button type="button" class="btn btn-outline bank-copy" data-value="' + value + '" style="padding:4px 10px;font-size:.75rem;">Copy</button>' +
+      '</span>';
+    wrap.appendChild(row);
+  });
+  wrap.addEventListener('click', function(e){
+    const btn = e.target.closest('.bank-copy');
+    if(!btn) return;
+    navigator.clipboard.writeText(btn.dataset.value).then(() => {
+      const original = btn.textContent;
+      btn.textContent = 'Copied';
+      setTimeout(() => { btn.textContent = original; }, 1500);
     });
   });
-  amtInput.addEventListener('input', () => refresh(amtInput.value));
-
-  refresh(''); // initial QR with no fixed amount
 })();
 </script>
-
 <section class="section alt">
   <div class="wrap center">
     <h2>Transparency, always</h2>
@@ -106,7 +85,6 @@
     <a href="about.html#reports" class="btn btn-outline">View annual reports</a>
   </div>
 </section>
-
 <div id="footer-mount"></div>
 <script src="js/site.js"></script>
 <script>mountChrome('donate');</script>
