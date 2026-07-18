@@ -68,14 +68,17 @@
   // keeping whichever category filter was already selected.
   document.addEventListener('medini:langchange', () => { if(currentItems) renderList(currentItems); });
 
-  // Try the live database first (initiatives created/edited via admin.html).
-  // Falls back to the bundled data/initiatives.json if Firebase isn't set up yet.
+  // Initiatives come from Firestore only (created/edited/deleted via admin.html).
+  // No static-JSON fallback — an empty database means an empty list, so
+  // deleting an initiative here always actually removes it from the site.
   fetchInitiativesFromDB()
     .then(dbItems => {
-      if(dbItems.length === 0) return loadJSON('data/initiatives.json').then(renderList);
+      if(dbItems.length === 0){
+        document.getElementById('initiative-list').innerHTML = '<p class="muted">No initiatives posted yet.</p>';
+        return;
+      }
       renderList(dbItems);
     })
-    .catch(() => loadJSON('data/initiatives.json').then(renderList))
     .catch(()=>{ document.getElementById('initiative-list').innerHTML = '<p class="muted">Could not load initiatives.</p>'; });
 </script>
 </body>
