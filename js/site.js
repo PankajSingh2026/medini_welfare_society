@@ -172,3 +172,12 @@ function t(obj, field){
   if(getCurrentLang() === 'hi' && obj[field + 'Hi']) return obj[field + 'Hi'];
   return obj[field] || '';
 }
+
+// Pulls the 11-character video ID out of any common YouTube URL shape
+// (watch?v=, youtu.be/, embed/, shorts/) so we can build a thumbnail image
+// URL without needing an API call. Returns '' if the link doesn't match.
+function extractYouTubeId(url){
+  if(!url) return '';
+  const m = String(url).match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/);
+  return m ? m[1] : '';
+}
