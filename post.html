@@ -48,12 +48,13 @@
 
   const slug = new URLSearchParams(location.search).get('slug');
 
+  // Firestore only — if a post was deleted from admin, its page correctly
+  // stops resolving instead of falling back to stale static content.
   fetchPostBySlugFromDB(slug)
     .then(p => {
       if(p) return renderPost(p);
-      return loadJSON('data/blog.json').then(posts => renderPost(posts.find(x => x.slug === slug) || posts[0]));
+      document.querySelector('#post-content .wrap').innerHTML = '<p class="muted">Could not load this post.</p>';
     })
-    .catch(() => loadJSON('data/blog.json').then(posts => renderPost(posts.find(x => x.slug === slug) || posts[0])))
     .catch(()=>{
       document.querySelector('#post-content .wrap').innerHTML = '<p class="muted">Could not load this post.</p>';
     });
