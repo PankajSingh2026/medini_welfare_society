@@ -97,7 +97,7 @@ p{margin:0 0 1em;}
   display:flex;align-items:center;gap:10px;
   font-family:var(--display);font-weight:600;font-size:1.2rem;color:var(--ink);
 }
-.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--marigold);}
+.brand-logo{width:32px;height:32px;object-fit:contain;border-radius:6px;}
 .nav-links{display:flex;gap:28px;list-style:none;margin:0;padding:0;font-size:.95rem;font-weight:500;}
 .nav-links a{position:relative;padding:4px 0;}
 .nav-links a.active,.nav-links a:hover{color:var(--leaf);}
