@@ -34,19 +34,24 @@
 <script>
   mountChrome('initiatives');
 
+  let currentItems = null;
+  let currentCat = 'All';
+
   function renderList(items){
+    currentItems = items;
     const cats = ['All', ...new Set(items.map(i => i.category))];
     const filters = document.getElementById('filters');
     const list = document.getElementById('initiative-list');
 
     function render(cat){
+      currentCat = cat;
       const filtered = cat === 'All' ? items : items.filter(i => i.category === cat);
       list.innerHTML = filtered.map(it => `
         <div class="card">
-          <img src="${it.image}" alt="${it.title}">
+          <img src="${it.image}" alt="${t(it, 'title')}">
           <div class="flex-gap"><span class="tag">${it.category}</span><span class="tag" style="background:transparent;border:1px solid var(--rule);">${it.status}</span></div>
-          <h3>${it.title}</h3>
-          <p class="muted">${it.summary}</p>
+          <h3>${t(it, 'title')}</h3>
+          <p class="muted">${t(it, 'summary')}</p>
           <a href="initiative.html?slug=${it.slug}" class="btn-ghost">Read more →</a>
         </div>
       `).join('');
@@ -56,8 +61,12 @@
     filters.querySelectorAll('.filter-btn').forEach(btn => {
       btn.addEventListener('click', () => render(btn.dataset.cat));
     });
-    render('All');
+    render(currentCat);
   }
+
+  // Re-render with the other language's fields when the header's language switch is used,
+  // keeping whichever category filter was already selected.
+  document.addEventListener('medini:langchange', () => { if(currentItems) renderList(currentItems); });
 
   // Try the live database first (initiatives created/edited via admin.html).
   // Falls back to the bundled data/initiatives.json if Firebase isn't set up yet.

@@ -25,19 +25,26 @@
 <script>
   mountChrome('blog');
 
+  let currentPost = null;
+
   function renderPost(p){
-    document.title = p.title + ' — Medini Welfare Society';
+    currentPost = p;
+    document.title = t(p, 'title') + ' — Medini Welfare Society';
     const metaDesc = document.getElementById('metaDescription');
-    if(metaDesc && p.excerpt) metaDesc.setAttribute('content', p.excerpt);
+    if(metaDesc && t(p, 'excerpt')) metaDesc.setAttribute('content', t(p, 'excerpt'));
     document.querySelector('#post-content .wrap').innerHTML = `
       <span class="eyebrow">${p.category}</span>
-      <h1>${p.title}</h1>
+      <h1>${t(p, 'title')}</h1>
       <p class="post-hero-meta">${fmtDate(p.date)} · By ${p.author}</p>
-      <img src="${p.image}" alt="${p.title}">
-      ${p.body}
+      <img src="${p.image}" alt="${t(p, 'title')}">
+      ${t(p, 'body')}
       <div class="mt-40"><a href="blog.html" class="btn btn-outline">← Back to blog</a></div>
     `;
   }
+
+  // Re-render with the other language's fields when the header's language switch is used,
+  // without re-fetching from Firestore.
+  document.addEventListener('medini:langchange', () => { if(currentPost) renderPost(currentPost); });
 
   const slug = new URLSearchParams(location.search).get('slug');
 

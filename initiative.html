@@ -24,16 +24,19 @@
   mountChrome('initiatives');
   const slug = new URLSearchParams(location.search).get('slug');
 
+  let currentInitiative = null;
+
   function renderInitiative(it){
-    document.title = it.title + ' — Medini Welfare Society';
+    currentInitiative = it;
+    document.title = t(it, 'title') + ' — Medini Welfare Society';
     const metaDesc = document.getElementById('metaDescription');
-    if(metaDesc && it.summary) metaDesc.setAttribute('content', it.summary);
+    if(metaDesc && t(it, 'summary')) metaDesc.setAttribute('content', t(it, 'summary'));
     document.querySelector('#initiative-content .wrap').innerHTML = `
       <span class="eyebrow">${it.category} · ${it.status}</span>
-      <h1>${it.title}</h1>
-      <img src="${it.image}" alt="${it.title}">
-      <p style="font-size:1.1rem;">${it.summary}</p>
-      <p>${it.detail}</p>
+      <h1>${t(it, 'title')}</h1>
+      <img src="${it.image}" alt="${t(it, 'title')}">
+      <p style="font-size:1.1rem;">${t(it, 'summary')}</p>
+      <p>${t(it, 'detail')}</p>
       <div class="card" style="margin-top:24px;">
         <span class="num">Impact</span>
         <h3>${it.impact}</h3>
@@ -44,6 +47,9 @@
       </div>
     `;
   }
+
+  // Re-render with the other language's fields when the header's language switch is used.
+  document.addEventListener('medini:langchange', () => { if(currentInitiative) renderInitiative(currentInitiative); });
 
   // Try the live database first (initiatives created/edited via admin.html).
   // Falls back to the bundled data/initiatives.json if Firebase isn't set up

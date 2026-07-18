@@ -117,14 +117,18 @@
   mountChrome('home');
   applyPageContent('home'); // overrides text above with anything saved via admin.html → Page Content
 
+  let currentFeaturedInitiatives = null;
+  let currentLatestPosts = null;
+
   function renderFeaturedInitiatives(items){
+    currentFeaturedInitiatives = items;
     const top = items.slice(0,3);
     document.getElementById('featured-initiatives').innerHTML = top.map((it,i) => `
       <div class="card">
-        <img src="${it.image}" alt="${it.title}">
+        <img src="${it.image}" alt="${t(it, 'title')}">
         <span class="tag">${it.category}</span>
-        <h3>${it.title}</h3>
-        <p class="muted">${it.summary}</p>
+        <h3>${t(it, 'title')}</h3>
+        <p class="muted">${t(it, 'summary')}</p>
         <a href="initiative.html?slug=${it.slug}" class="btn-ghost">Read more →</a>
       </div>
     `).join('');
@@ -137,13 +141,14 @@
     .catch(()=>{ document.getElementById('featured-initiatives').innerHTML = '<p class="muted">Initiatives will appear here.</p>'; });
 
   function renderLatestPosts(posts){
+    currentLatestPosts = posts;
     const latest = posts.slice().sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0,3);
     document.getElementById('latest-posts').innerHTML = latest.map(p => `
       <div class="card post-card">
-        <img src="${p.image}" alt="${p.title}">
+        <img src="${p.image}" alt="${t(p, 'title')}">
         <div class="meta"><span>${fmtDate(p.date)}</span><span>${p.category}</span></div>
-        <h3><a href="post.html?slug=${p.slug}">${p.title}</a></h3>
-        <p class="muted">${p.excerpt}</p>
+        <h3><a href="post.html?slug=${p.slug}">${t(p, 'title')}</a></h3>
+        <p class="muted">${t(p, 'excerpt')}</p>
       </div>
     `).join('');
   }
@@ -153,6 +158,12 @@
     .then(posts => posts.length ? renderLatestPosts(posts) : loadJSON('data/blog.json').then(renderLatestPosts))
     .catch(() => loadJSON('data/blog.json').then(renderLatestPosts))
     .catch(()=>{ document.getElementById('latest-posts').innerHTML = '<p class="muted">Blog posts will appear here.</p>'; });
+
+  // Re-render with the other language's fields when the header's language switch is used.
+  document.addEventListener('medini:langchange', () => {
+    if(currentFeaturedInitiatives) renderFeaturedInitiatives(currentFeaturedInitiatives);
+    if(currentLatestPosts) renderLatestPosts(currentLatestPosts);
+  });
 </script>
 </body>
 </html>

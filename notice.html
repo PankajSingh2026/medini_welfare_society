@@ -25,23 +25,30 @@
 <script>
   mountChrome('notices');
 
+  let currentNotice = null;
+
   function renderNotice(n){
-    document.title = n.headline + ' — Medini Welfare Society';
+    currentNotice = n;
+    document.title = t(n, 'headline') + ' — Medini Welfare Society';
     const metaDesc = document.getElementById('metaDescription');
-    if(metaDesc && n.body){
+    const bodyText = t(n, 'body');
+    if(metaDesc && bodyText){
       const div = document.createElement('div');
-      div.innerHTML = n.body;
+      div.innerHTML = bodyText;
       const text = (div.textContent || div.innerText || '').trim();
       if(text) metaDesc.setAttribute('content', text.length > 160 ? text.slice(0,160).trim() + '…' : text);
     }
     document.querySelector('#notice-content .wrap').innerHTML = `
       <span class="eyebrow">Notice</span>
-      <h1>${n.headline}</h1>
+      <h1>${t(n, 'headline')}</h1>
       <p class="post-hero-meta">${fmtDate(n.date)}</p>
-      ${n.body || ''}
+      ${bodyText}
       <div class="mt-40"><a href="notices.html" class="btn btn-outline">← All notices</a></div>
     `;
   }
+
+  // Re-render with the other language's fields when the header's language switch is used.
+  document.addEventListener('medini:langchange', () => { if(currentNotice) renderNotice(currentNotice); });
 
   const slug = new URLSearchParams(location.search).get('slug');
 

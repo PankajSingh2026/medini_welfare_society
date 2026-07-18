@@ -104,6 +104,15 @@
             <div id="bodyEditor" contenteditable="true"></div>
             <p class="form-note">Use the toolbar above to format text and insert images — this is saved as the post body.</p>
           </div>
+          <hr style="margin:24px 0;border:none;border-top:1px solid var(--rule);">
+          <p class="form-note" style="margin-bottom:12px;"><strong>Hindi version (optional)</strong> — leave blank to show the English version to Hindi-language visitors.</p>
+          <div><label for="pTitleHi">Title (Hindi)</label><input id="pTitleHi"></div>
+          <div><label for="pExcerptHi">Excerpt (Hindi)</label><textarea id="pExcerptHi" rows="2"></textarea></div>
+          <div>
+            <label>Body (Hindi)</label>
+            <div class="editor-toolbar" id="bodyToolbarHi"></div>
+            <div id="bodyEditorHi" contenteditable="true"></div>
+          </div>
           <div class="flex-gap">
             <button type="submit" class="btn btn-primary">Save post</button>
             <button type="button" class="btn btn-outline" id="cancelEditBtn">Clear / New</button>
@@ -140,6 +149,11 @@
           <div><label for="iSummary">Summary (short, shown on cards)</label><textarea id="iSummary" rows="2" required></textarea></div>
           <div><label for="iDetail">Detail (full write-up)</label><textarea id="iDetail" rows="6" required></textarea></div>
           <div><label for="iImpact">Impact line</label><input id="iImpact" placeholder="e.g. 1,400+ children enrolled across 12 centers" required></div>
+          <hr style="margin:24px 0;border:none;border-top:1px solid var(--rule);">
+          <p class="form-note" style="margin-bottom:12px;"><strong>Hindi version (optional)</strong> — leave blank to show the English version to Hindi-language visitors.</p>
+          <div><label for="iTitleHi">Title (Hindi)</label><input id="iTitleHi"></div>
+          <div><label for="iSummaryHi">Summary (Hindi)</label><textarea id="iSummaryHi" rows="2"></textarea></div>
+          <div><label for="iDetailHi">Detail (Hindi)</label><textarea id="iDetailHi" rows="6"></textarea></div>
           <div class="flex-gap">
             <button type="submit" class="btn btn-primary">Save initiative</button>
             <button type="button" class="btn btn-outline" id="cancelInitiativeEditBtn">Clear / New</button>
@@ -172,6 +186,14 @@
             <div class="editor-toolbar" id="noticeBodyToolbar"></div>
             <div id="noticeBodyEditor" contenteditable="true"></div>
             <p class="form-note">Use the toolbar above to format the notice text — this is saved as the notice body.</p>
+          </div>
+          <hr style="margin:24px 0;border:none;border-top:1px solid var(--rule);">
+          <p class="form-note" style="margin-bottom:12px;"><strong>Hindi version (optional)</strong> — leave blank to show the English version to Hindi-language visitors.</p>
+          <div><label for="nHeadlineHi">Headline (Hindi)</label><input id="nHeadlineHi"></div>
+          <div>
+            <label>Details (Hindi)</label>
+            <div class="editor-toolbar" id="noticeBodyToolbarHi"></div>
+            <div id="noticeBodyEditorHi" contenteditable="true"></div>
           </div>
           <div class="flex-gap">
             <button type="submit" class="btn btn-primary">Save notice</button>
@@ -267,31 +289,38 @@ const TOOLBAR_BUTTONS = [
   { label: 'Link', cmd: 'createLink' },
   { label: '🖼 Image', cmd: 'insertImage' },
 ];
-const toolbarEl = document.getElementById('bodyToolbar');
-TOOLBAR_BUTTONS.forEach(b => {
-  const btn = document.createElement('button');
-  btn.type = 'button';
-  btn.title = b.title || b.label;
-  btn.innerHTML = b.bold ? `<b>${b.label}</b>` : (b.italic ? `<i>${b.label}</i>` : b.label);
-  btn.addEventListener('click', () => {
-    bodyEditor.focus();
-    if(b.cmd === 'createLink'){
-      const url = prompt('Link URL:');
-      if(url) document.execCommand('createLink', false, url);
-    } else if(b.cmd === 'insertImage'){
-      const url = prompt('Image URL (paste a link, or upload your image to /images in GitHub first and use images/your-file.jpg):');
-      if(url) document.execCommand('insertImage', false, url);
-    } else {
-      document.execCommand(b.cmd, false, b.val || null);
-    }
+// Reusable: wires a formatting toolbar to a given contenteditable box.
+// Used for the English and Hindi post/notice body editors.
+function wireToolbar(toolbarEl, editorEl){
+  TOOLBAR_BUTTONS.forEach(b => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.title = b.title || b.label;
+    btn.innerHTML = b.bold ? `<b>${b.label}</b>` : (b.italic ? `<i>${b.label}</i>` : b.label);
+    btn.addEventListener('click', () => {
+      editorEl.focus();
+      if(b.cmd === 'createLink'){
+        const url = prompt('Link URL:');
+        if(url) document.execCommand('createLink', false, url);
+      } else if(b.cmd === 'insertImage'){
+        const url = prompt('Image URL (paste a link, or upload your image to /images in GitHub first and use images/your-file.jpg):');
+        if(url) document.execCommand('insertImage', false, url);
+      } else {
+        document.execCommand(b.cmd, false, b.val || null);
+      }
+    });
+    toolbarEl.appendChild(btn);
   });
-  toolbarEl.appendChild(btn);
-});
+}
+wireToolbar(document.getElementById('bodyToolbar'), bodyEditor);
+const bodyEditorHi = document.getElementById('bodyEditorHi');
+wireToolbar(document.getElementById('bodyToolbarHi'), bodyEditorHi);
 function resetForm(){
   editingId = null;
   editorTitle.textContent = 'New post';
   postForm.reset();
   bodyEditor.innerHTML = '';
+  bodyEditorHi.innerHTML = '';
   postStatus.textContent = '';
 }
 document.getElementById('newPostBtn').addEventListener('click', resetForm);
@@ -342,6 +371,9 @@ function loadPostIntoForm(p){
   document.getElementById('pImage').value = p.image || '';
   document.getElementById('pExcerpt').value = p.excerpt;
   bodyEditor.innerHTML = p.body || '';
+  document.getElementById('pTitleHi').value = p.titleHi || '';
+  document.getElementById('pExcerptHi').value = p.excerptHi || '';
+  bodyEditorHi.innerHTML = p.bodyHi || '';
   window.scrollTo({top: 0, behavior:'smooth'});
 }
 postForm.addEventListener('submit', async (e) => {
@@ -356,7 +388,10 @@ postForm.addEventListener('submit', async (e) => {
     category: document.getElementById('pCategory').value.trim(),
     image: document.getElementById('pImage').value.trim() || 'images/blog-1.jpg',
     excerpt: document.getElementById('pExcerpt').value.trim(),
-    body: bodyEditor.innerHTML
+    body: bodyEditor.innerHTML,
+    titleHi: document.getElementById('pTitleHi').value.trim(),
+    excerptHi: document.getElementById('pExcerptHi').value.trim(),
+    bodyHi: bodyEditorHi.innerHTML
   };
   try{
     await savePostToDB(post, editingId);
@@ -428,6 +463,9 @@ function loadInitiativeIntoForm(it){
   document.getElementById('iImage').value = it.image || '';
   document.getElementById('iSummary').value = it.summary || '';
   document.getElementById('iDetail').value = it.detail || '';
+  document.getElementById('iTitleHi').value = it.titleHi || '';
+  document.getElementById('iSummaryHi').value = it.summaryHi || '';
+  document.getElementById('iDetailHi').value = it.detailHi || '';
   document.getElementById('iImpact').value = it.impact || '';
   window.scrollTo({top: 0, behavior:'smooth'});
 }
@@ -443,7 +481,10 @@ initiativeForm.addEventListener('submit', async (e) => {
     image: document.getElementById('iImage').value.trim() || 'images/initiative-1.jpg',
     summary: document.getElementById('iSummary').value.trim(),
     detail: document.getElementById('iDetail').value.trim(),
-    impact: document.getElementById('iImpact').value.trim()
+    impact: document.getElementById('iImpact').value.trim(),
+    titleHi: document.getElementById('iTitleHi').value.trim(),
+    summaryHi: document.getElementById('iSummaryHi').value.trim(),
+    detailHi: document.getElementById('iDetailHi').value.trim()
   };
   try{
     await saveInitiativeToDB(initiative, editingInitiativeId);
@@ -496,30 +537,14 @@ const noticeBodyEditor = document.getElementById('noticeBodyEditor');
 const noticeStatus = document.getElementById('noticeStatus');
 let editingNoticeId = null;
 // Reuse the same toolbar button definitions as the blog editor, wired to this second editable box.
-const noticeToolbarEl = document.getElementById('noticeBodyToolbar');
-TOOLBAR_BUTTONS.forEach(b => {
-  const btn = document.createElement('button');
-  btn.type = 'button';
-  btn.title = b.title || b.label;
-  btn.innerHTML = b.bold ? `<b>${b.label}</b>` : (b.italic ? `<i>${b.label}</i>` : b.label);
-  btn.addEventListener('click', () => {
-    noticeBodyEditor.focus();
-    if(b.cmd === 'createLink'){
-      const url = prompt('Link URL:');
-      if(url) document.execCommand('createLink', false, url);
-    } else if(b.cmd === 'insertImage'){
-      const url = prompt('Image URL (paste a link, or upload your image to /images in GitHub first and use images/your-file.jpg):');
-      if(url) document.execCommand('insertImage', false, url);
-    } else {
-      document.execCommand(b.cmd, false, b.val || null);
-    }
-  });
-  noticeToolbarEl.appendChild(btn);
-});
+wireToolbar(document.getElementById('noticeBodyToolbar'), noticeBodyEditor);
+const noticeBodyEditorHi = document.getElementById('noticeBodyEditorHi');
+wireToolbar(document.getElementById('noticeBodyToolbarHi'), noticeBodyEditorHi);
 function resetNoticeForm(){
   editingNoticeId = null;
   noticeEditorTitle.textContent = 'New notice';
   noticeForm.reset();
+  noticeBodyEditorHi.innerHTML = '';
   noticeBodyEditor.innerHTML = '';
   noticeStatus.textContent = '';
 }
@@ -567,6 +592,8 @@ function loadNoticeIntoForm(n){
   document.getElementById('nSlug').value = n.slug || '';
   document.getElementById('nDate').value = n.date || '';
   noticeBodyEditor.innerHTML = n.body || '';
+  document.getElementById('nHeadlineHi').value = n.headlineHi || '';
+  noticeBodyEditorHi.innerHTML = n.bodyHi || '';
   window.scrollTo({top: 0, behavior:'smooth'});
 }
 noticeForm.addEventListener('submit', async (e) => {
@@ -577,7 +604,9 @@ noticeForm.addEventListener('submit', async (e) => {
     headline: document.getElementById('nHeadline').value.trim(),
     slug: document.getElementById('nSlug').value.trim().toLowerCase().replace(/\s+/g,'-'),
     date: document.getElementById('nDate').value,
-    body: noticeBodyEditor.innerHTML
+    body: noticeBodyEditor.innerHTML,
+    headlineHi: document.getElementById('nHeadlineHi').value.trim(),
+    bodyHi: noticeBodyEditorHi.innerHTML
   };
   try{
     await saveNoticeToDB(notice, editingNoticeId);

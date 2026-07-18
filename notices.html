@@ -43,7 +43,10 @@
     return text.length > n ? text.slice(0, n).trim() + '…' : text;
   }
 
+  let currentNotices = null;
+
   function renderNotices(notices){
+    currentNotices = notices;
     if(notices.length === 0){
       document.getElementById('notice-list').innerHTML = '<p class="muted">No notices posted yet.</p>';
       return;
@@ -52,12 +55,15 @@
     document.getElementById('notice-list').innerHTML = notices.map(n => `
       <div class="card post-card">
         <div class="meta"><span>${fmtDate(n.date)}</span></div>
-        <h3><a href="notice.html?slug=${n.slug}">${n.headline}</a></h3>
-        <p class="muted">${truncate(stripHtml(n.body), 160)}</p>
+        <h3><a href="notice.html?slug=${n.slug}">${t(n, 'headline')}</a></h3>
+        <p class="muted">${truncate(stripHtml(t(n, 'body')), 160)}</p>
         <a href="notice.html?slug=${n.slug}" class="btn-ghost">Read notice →</a>
       </div>
     `).join('');
   }
+
+  // Re-render with the other language's fields when the header's language switch is used.
+  document.addEventListener('medini:langchange', () => { if(currentNotices) renderNotices(currentNotices); });
 
   fetchNoticesFromDB()
     .then(renderNotices)
