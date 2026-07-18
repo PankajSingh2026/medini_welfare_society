@@ -72,6 +72,7 @@
       <button class="tab-btn active" data-tab="postsTab">Blog Posts</button>
       <button class="tab-btn" data-tab="initiativesTab">Initiatives</button>
       <button class="tab-btn" data-tab="noticesTab">Notices</button>
+      <button class="tab-btn" data-tab="videosTab">Videos</button>
       <button class="tab-btn" data-tab="pagesTab">Page Content</button>
     </div>
     <!-- ===== TAB: BLOG POSTS ===== -->
@@ -208,6 +209,39 @@
       </div>
     </div>
     </div>
+    <!-- ===== TAB: VIDEOS ===== -->
+    <div class="tab-panel" id="videosTab">
+    <div class="grid-2" style="align-items:flex-start;">
+      <!-- Video list -->
+      <div>
+        <h3>Existing videos</h3>
+        <button class="btn btn-primary" id="newVideoBtn" style="margin-bottom:18px;">+ New video</button>
+        <div id="videosList"><p class="muted">Loading…</p></div>
+      </div>
+      <!-- Editor -->
+      <div>
+        <h3 id="videoEditorTitle">New video</h3>
+        <form class="box" id="videoForm">
+          <div><label for="vTitle">Title</label><input id="vTitle" required></div>
+          <div class="form-row">
+            <div><label for="vUrl">YouTube video link</label><input id="vUrl" placeholder="https://www.youtube.com/watch?v=..." required></div>
+            <div><label for="vDate">Date of post</label><input id="vDate" type="date" required></div>
+          </div>
+          <img id="vUrlPreview" style="display:none;margin-top:-8px;margin-bottom:14px;border-radius:8px;max-width:220px;aspect-ratio:16/9;object-fit:cover;">
+          <div><label for="vDescription">Description (optional)</label><textarea id="vDescription" rows="3"></textarea></div>
+          <hr style="margin:24px 0;border:none;border-top:1px solid var(--rule);">
+          <p class="form-note" style="margin-bottom:12px;"><strong>Hindi version (optional)</strong> — leave blank to show the English version to Hindi-language visitors.</p>
+          <div><label for="vTitleHi">Title (Hindi)</label><input id="vTitleHi"></div>
+          <div><label for="vDescriptionHi">Description (Hindi)</label><textarea id="vDescriptionHi" rows="3"></textarea></div>
+          <div class="flex-gap">
+            <button type="submit" class="btn btn-primary">Save video</button>
+            <button type="button" class="btn btn-outline" id="cancelVideoEditBtn">Clear / New</button>
+          </div>
+          <p class="form-status" id="videoStatus"></p>
+        </form>
+      </div>
+    </div>
+    </div>
     <!-- ===== TAB: PAGE CONTENT ===== -->
     <div class="tab-panel" id="pagesTab">
       <p class="muted" style="max-width:60ch;">Edit the text shown on key site pages. Changes here update the live page immediately — no need to touch any HTML files.</p>
@@ -258,6 +292,7 @@ onAdminAuthChange(user => {
     refreshPostsList();
     refreshInitiativesList();
     refreshNoticesList();
+    refreshVideosList();
   } else {
     loginShell.style.display = 'flex';
     adminShell.style.display = 'none';
@@ -651,6 +686,100 @@ noticeForm.addEventListener('submit', async (e) => {
   } catch(err){
     noticeStatus.style.color = '#c0392b';
     noticeStatus.textContent = 'Could not save: ' + (err.message || err) + '. Check that Firestore rules include a block for the notices collection.';
+  }
+});
+// ---------- VIDEO EDITOR ----------
+const videoForm = document.getElementById('videoForm');
+const videosList = document.getElementById('videosList');
+const videoEditorTitle = document.getElementById('videoEditorTitle');
+const videoStatus = document.getElementById('videoStatus');
+let editingVideoId = null;
+// Live thumbnail preview as the admin pastes/edits the YouTube link.
+document.getElementById('vUrl').addEventListener('input', (e) => {
+  const id = extractYouTubeId(e.target.value.trim());
+  const img = document.getElementById('vUrlPreview');
+  if(id){ img.src = `https://img.youtube.com/vi/${id}/hqdefault.jpg`; img.style.display = 'block'; }
+  else { img.style.display = 'none'; }
+});
+function resetVideoForm(){
+  editingVideoId = null;
+  videoEditorTitle.textContent = 'New video';
+  videoForm.reset();
+  document.getElementById('vUrlPreview').style.display = 'none';
+  videoStatus.textContent = '';
+}
+document.getElementById('newVideoBtn').addEventListener('click', resetVideoForm);
+document.getElementById('cancelVideoEditBtn').addEventListener('click', resetVideoForm);
+async function refreshVideosList(){
+  videosList.innerHTML = '<p class="muted">Loading…</p>';
+  try{
+    const videos = await fetchVideosFromDB();
+    if(videos.length === 0){
+      videosList.innerHTML = '<p class="muted">No videos yet — add your first one.</p>';
+      return;
+    }
+    videosList.innerHTML = videos.map(v => `
+      <div class="post-row">
+        <div>
+          <strong>${v.title}</strong><br>
+          <span class="meta">${v.date || ''}</span>
+        </div>
+        <div class="flex-gap">
+          <button class="btn btn-outline" style="padding:6px 14px;font-size:.85rem;" data-edit="${v.id}">Edit</button>
+          <button class="btn btn-outline" style="padding:6px 14px;font-size:.85rem;color:#c0392b;border-color:#c0392b;" data-del="${v.id}">Delete</button>
+        </div>
+      </div>
+    `).join('');
+    videosList.querySelectorAll('[data-edit]').forEach(btn => {
+      btn.addEventListener('click', () => loadVideoIntoForm(videos.find(v => v.id === btn.dataset.edit)));
+    });
+    videosList.querySelectorAll('[data-del]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if(confirm('Delete this video? This cannot be undone.')){
+          await deleteVideoFromDB(btn.dataset.del);
+          refreshVideosList();
+        }
+      });
+    });
+  } catch(err){
+    videosList.innerHTML = '<p class="muted">Could not load videos: ' + (err.message || err) + '</p>';
+  }
+}
+function loadVideoIntoForm(v){
+  editingVideoId = v.id;
+  videoEditorTitle.textContent = 'Editing: ' + v.title;
+  document.getElementById('vTitle').value = v.title || '';
+  document.getElementById('vUrl').value = v.videoUrl || '';
+  document.getElementById('vDate').value = v.date || '';
+  document.getElementById('vDescription').value = v.description || '';
+  document.getElementById('vTitleHi').value = v.titleHi || '';
+  document.getElementById('vDescriptionHi').value = v.descriptionHi || '';
+  const id = extractYouTubeId(v.videoUrl);
+  const img = document.getElementById('vUrlPreview');
+  if(id){ img.src = `https://img.youtube.com/vi/${id}/hqdefault.jpg`; img.style.display = 'block'; }
+  else { img.style.display = 'none'; }
+  window.scrollTo({top: 0, behavior:'smooth'});
+}
+videoForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  videoStatus.style.color = 'var(--leaf)';
+  videoStatus.textContent = 'Saving…';
+  const video = {
+    title: document.getElementById('vTitle').value.trim(),
+    videoUrl: document.getElementById('vUrl').value.trim(),
+    date: document.getElementById('vDate').value,
+    description: document.getElementById('vDescription').value.trim(),
+    titleHi: document.getElementById('vTitleHi').value.trim(),
+    descriptionHi: document.getElementById('vDescriptionHi').value.trim()
+  };
+  try{
+    await saveVideoToDB(video, editingVideoId);
+    videoStatus.textContent = 'Saved.';
+    resetVideoForm();
+    refreshVideosList();
+  } catch(err){
+    videoStatus.style.color = '#c0392b';
+    videoStatus.textContent = 'Could not save: ' + (err.message || err) + '. If this says "permission" or "insufficient permissions", your Firestore rules need a rule for the videos collection — see README.';
   }
 });
 // ---------- PAGE CONTENT EDITOR ----------
