@@ -9,7 +9,6 @@
 //   4. Create a Firestore database (production mode)
 //   5. Paste your project's config values into firebaseConfig below
 // ===========================================================
-
 const firebaseConfig = {
   apiKey: "AIzaSyDr7VN2yWs7t5YJTiRLcd71IuBwV_nZDAY",
   authDomain: "medini-welfare.firebaseapp.com",
@@ -18,41 +17,32 @@ const firebaseConfig = {
   messagingSenderId: "991915166748",
   appId: "1:991915166748:web:8014f9f6faf6142921a3d9"
 };
-
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-
 // ---------- AUTH HELPERS ----------
-
 function adminLogin(email, password){
   return auth.signInWithEmailAndPassword(email, password);
 }
-
 function adminLogout(){
   return auth.signOut();
 }
-
 function onAdminAuthChange(callback){
   return auth.onAuthStateChanged(callback);
 }
-
 // ---------- BLOG POST HELPERS (Firestore) ----------
 // Posts live in a Firestore collection called "posts".
 // Each document: { title, slug, author, category, image, excerpt, body, date }
-
 async function fetchPostsFromDB(){
   const snap = await db.collection('posts').orderBy('date', 'desc').get();
   return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
-
 async function fetchPostBySlugFromDB(slug){
   const snap = await db.collection('posts').where('slug', '==', slug).limit(1).get();
   if(snap.empty) return null;
   const doc = snap.docs[0];
   return { id: doc.id, ...doc.data() };
 }
-
 async function savePostToDB(post, existingId){
   if(existingId){
     await db.collection('posts').doc(existingId).set(post, { merge: true });
@@ -62,25 +52,45 @@ async function savePostToDB(post, existingId){
     return ref.id;
   }
 }
-
 async function deletePostFromDB(id){
   await db.collection('posts').doc(id).delete();
 }
-
+// ---------- INITIATIVE HELPERS (Firestore) ----------
+// Initiatives live in a Firestore collection called "initiatives".
+// Each document: { title, slug, category, status, image, summary, detail, impact }
+async function fetchInitiativesFromDB(){
+  const snap = await db.collection('initiatives').get();
+  return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+async function fetchInitiativeBySlugFromDB(slug){
+  const snap = await db.collection('initiatives').where('slug', '==', slug).limit(1).get();
+  if(snap.empty) return null;
+  const doc = snap.docs[0];
+  return { id: doc.id, ...doc.data() };
+}
+async function saveInitiativeToDB(initiative, existingId){
+  if(existingId){
+    await db.collection('initiatives').doc(existingId).set(initiative, { merge: true });
+    return existingId;
+  } else {
+    const ref = await db.collection('initiatives').add(initiative);
+    return ref.id;
+  }
+}
+async function deleteInitiativeFromDB(id){
+  await db.collection('initiatives').doc(id).delete();
+}
 // ---------- PAGE CONTENT HELPERS (editable Home/About/etc. text) ----------
 // Stored in Firestore collection "pages", one document per page (e.g. "home").
 // Each field on the document maps to an element with id="cms-{page}-{field}"
 // in that page's HTML — see applyPageContent() below.
-
 async function getPageContent(pageId){
   const doc = await db.collection('pages').doc(pageId).get();
   return doc.exists ? doc.data() : null;
 }
-
 async function savePageContent(pageId, fields){
   await db.collection('pages').doc(pageId).set(fields, { merge: true });
 }
-
 // Call this on any public page (e.g. applyPageContent('home')) to replace
 // the default HTML in elements tagged id="cms-home-xyz" with whatever an
 // admin has saved for that field. Silently does nothing if Firebase isn't
