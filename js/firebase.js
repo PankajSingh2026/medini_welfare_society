@@ -105,6 +105,25 @@ async function saveNoticeToDB(notice, existingId){
 async function deleteNoticeFromDB(id){
   await db.collection('notices').doc(id).delete();
 }
+// ---------- VIDEO HELPERS (Firestore) ----------
+// Society videos live in a Firestore collection called "videos".
+// Each document: { title, videoUrl, date, description }
+async function fetchVideosFromDB(){
+  const snap = await db.collection('videos').orderBy('date', 'desc').get();
+  return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+async function saveVideoToDB(video, existingId){
+  if(existingId){
+    await db.collection('videos').doc(existingId).set(video, { merge: true });
+    return existingId;
+  } else {
+    const ref = await db.collection('videos').add(video);
+    return ref.id;
+  }
+}
+async function deleteVideoFromDB(id){
+  await db.collection('videos').doc(id).delete();
+}
 // ---------- PAGE CONTENT HELPERS (editable Home/About/etc. text) ----------
 // Stored in Firestore collection "pages", one document per page (e.g. "home").
 // Each field on the document maps to an element with id="cms-{page}-{field}"
