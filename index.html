@@ -131,14 +131,6 @@
 
 <div id="footer-mount"></div>
 
-<!-- ============ VIDEO PLAYER MODAL ============ -->
-<div class="video-modal" id="videoModal">
-  <div class="video-modal-inner">
-    <button type="button" class="video-modal-close" id="videoModalClose" aria-label="Close">&times;</button>
-    <div class="video-modal-frame" id="videoModalFrame"></div>
-  </div>
-</div>
-
 <script src="js/site.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -154,27 +146,41 @@
   let currentVideos = null;
 
   // Society videos, shown below as a right-to-left scrolling row of cards.
-  // Clicking a card plays the video inline in a modal instead of leaving the site.
+  // Clicking the thumbnail plays the video inline, right inside the card —
+  // no popup. A separate "Watch on YouTube" link takes visitors to the
+  // actual video on youtube.com if they'd rather watch it there.
   function renderVideos(videos){
     currentVideos = videos;
+    currentlyPlayingThumb = null; // track was just rebuilt, any live iframe is gone
     const section = document.getElementById('videosSection');
     const track = document.getElementById('videoTickerTrack');
     if(!videos || videos.length === 0){ section.style.display = 'none'; return; }
     const sorted = videos.slice().sort((a,b) => new Date(b.date) - new Date(a.date));
     const cardsHTML = sorted.map(v => {
+      // videoUrl in Firestore might be a plain link OR the full <iframe> embed
+      // snippet copied from YouTube's "Share → Embed" dialog — extractYouTubeId
+      // scans for the video ID pattern wherever it appears, so either works.
       const ytId = extractYouTubeId(v.videoUrl);
       const thumb = ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : 'images/hero.jpg';
+      const title = t(v, 'title');
       const desc = t(v, 'description');
+      // Always link to a clean watch URL built from the extracted ID, rather
+      // than reusing the raw saved value (which could be embed-code markup).
+      const watchUrl = ytId ? `https://www.youtube.com/watch?v=${ytId}` : (v.videoUrl || '#');
       const safeUrl = (v.videoUrl || '').replace(/"/g, '&quot;');
+      const safeTitle = (title || '').replace(/"/g, '&quot;');
       return `
-        <div class="video-card" data-yt-id="${ytId}" data-video-url="${safeUrl}" role="button" tabindex="0">
-          <div class="video-thumb-wrap">
-            <img src="${thumb}" alt="${t(v, 'title')}" loading="lazy">
+        <div class="video-card" data-yt-id="${ytId}" data-video-url="${safeUrl}" data-title="${safeTitle}">
+          <div class="video-thumb-wrap" role="button" tabindex="0" aria-label="Play video">
+            <img src="${thumb}" alt="${title}" loading="lazy">
             <span class="video-play">▶</span>
           </div>
           <div class="video-card-body">
-            <h4>${t(v, 'title')}</h4>
-            <span class="video-date">${fmtDate(v.date)}</span>
+            <h4>${title}</h4>
+            <div class="video-meta-row">
+              <span class="video-date">${fmtDate(v.date)}</span>
+              <a class="video-yt-link" href="${watchUrl}" target="_blank" rel="noopener">${tt('home.watchOnYoutube') || 'Watch on YouTube ↗'}</a>
+            </div>
             ${desc ? `<p class="video-desc">${desc}</p>` : ''}
           </div>
         </div>
@@ -188,41 +194,50 @@
     .then(renderVideos)
     .catch(()=>{ const el = document.getElementById('videosSection'); if(el) el.style.display = 'none'; });
 
-  // ---------- INLINE VIDEO PLAYER MODAL ----------
-  const videoModal = document.getElementById('videoModal');
-  const videoModalFrame = document.getElementById('videoModalFrame');
-  function openVideoModal(ytId, fallbackUrl){
-    if(ytId){
-      videoModalFrame.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0" title="Video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-      videoModal.classList.add('open');
-      document.body.style.overflow = 'hidden';
-    } else if(fallbackUrl){
+  // ---------- INLINE VIDEO PLAYBACK (right in the card, no popup) ----------
+  const videoTickerTrack = document.getElementById('videoTickerTrack');
+  let currentlyPlayingThumb = null;
+  function playInline(thumbWrap){
+    // Only one video plays at a time — stop whatever else was playing first.
+    if(currentlyPlayingThumb && currentlyPlayingThumb !== thumbWrap) stopInline(currentlyPlayingThumb);
+    const card = thumbWrap.closest('.video-card');
+    const ytId = card.dataset.ytId;
+    if(!ytId){
       // Link didn't match a recognizable YouTube ID — fall back to opening it directly.
-      window.open(fallbackUrl, '_blank', 'noopener');
+      window.open(card.dataset.videoUrl, '_blank', 'noopener');
+      return;
     }
+    thumbWrap.innerHTML = `
+      <iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0" title="Video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      <button type="button" class="video-inline-close" aria-label="Stop video">✕</button>
+    `;
+    currentlyPlayingThumb = thumbWrap;
+    videoTickerTrack.classList.add('playing'); // pauses the scroll animation while a video is live
   }
-  function closeVideoModal(){
-    videoModal.classList.remove('open');
-    videoModalFrame.innerHTML = ''; // stops playback
-    document.body.style.overflow = '';
+  function stopInline(thumbWrap){
+    const card = thumbWrap.closest('.video-card');
+    const ytId = card.dataset.ytId;
+    const thumb = ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : 'images/hero.jpg';
+    thumbWrap.innerHTML = `<img src="${thumb}" alt="${card.dataset.title || ''}" loading="lazy"><span class="video-play">▶</span>`; // removing the iframe from the DOM stops playback
+    if(currentlyPlayingThumb === thumbWrap) currentlyPlayingThumb = null;
+    videoTickerTrack.classList.remove('playing');
   }
   // Event delegation on the (persistent) track container — works for both
   // the original and the duplicated set of cards, and survives re-renders.
-  document.getElementById('videoTickerTrack').addEventListener('click', (e) => {
-    const card = e.target.closest('.video-card');
-    if(!card) return;
-    openVideoModal(card.dataset.ytId, card.dataset.videoUrl);
+  videoTickerTrack.addEventListener('click', (e) => {
+    const closeBtn = e.target.closest('.video-inline-close');
+    if(closeBtn){ stopInline(closeBtn.closest('.video-thumb-wrap')); return; }
+    if(e.target.closest('.video-yt-link')) return; // let that link navigate normally
+    const thumbWrap = e.target.closest('.video-thumb-wrap');
+    if(thumbWrap && !thumbWrap.querySelector('iframe')) playInline(thumbWrap);
   });
-  document.getElementById('videoTickerTrack').addEventListener('keydown', (e) => {
+  videoTickerTrack.addEventListener('keydown', (e) => {
     if(e.key !== 'Enter' && e.key !== ' ') return;
-    const card = e.target.closest('.video-card');
-    if(!card) return;
+    const thumbWrap = e.target.closest('.video-thumb-wrap');
+    if(!thumbWrap || thumbWrap.querySelector('iframe')) return;
     e.preventDefault();
-    openVideoModal(card.dataset.ytId, card.dataset.videoUrl);
+    playInline(thumbWrap);
   });
-  document.getElementById('videoModalClose').addEventListener('click', closeVideoModal);
-  videoModal.addEventListener('click', (e) => { if(e.target === videoModal) closeVideoModal(); });
-  document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeVideoModal(); });
 
   // Top 2 notices, shown as a right-to-left scrolling strip below the nav bar.
   function renderNoticeTicker(notices){
