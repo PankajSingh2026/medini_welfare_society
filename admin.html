@@ -41,7 +41,6 @@
 </head>
 <body>
 <div id="header-mount"></div>
-
 <!-- ============ LOGIN ============ -->
 <section class="section login-shell" id="loginShell">
   <div class="wrap" style="max-width:420px;">
@@ -56,7 +55,6 @@
     </form>
   </div>
 </section>
-
 <!-- ============ ADMIN DASHBOARD ============ -->
 <section class="section admin-shell" id="adminShell">
   <div class="wrap">
@@ -70,12 +68,11 @@
         <button class="btn btn-outline" id="logoutBtn">Sign out</button>
       </div>
     </div>
-
     <div class="tab-bar">
       <button class="tab-btn active" data-tab="postsTab">Blog Posts</button>
+      <button class="tab-btn" data-tab="initiativesTab">Initiatives</button>
       <button class="tab-btn" data-tab="pagesTab">Page Content</button>
     </div>
-
     <!-- ===== TAB: BLOG POSTS ===== -->
     <div class="tab-panel active" id="postsTab">
     <div class="grid-2" style="align-items:flex-start;">
@@ -85,7 +82,6 @@
         <button class="btn btn-primary" id="newPostBtn" style="margin-bottom:18px;">+ New post</button>
         <div id="postsList"><p class="muted">Loading…</p></div>
       </div>
-
       <!-- Editor -->
       <div>
         <h3 id="editorTitle">New post</h3>
@@ -101,14 +97,12 @@
           </div>
           <div><label for="pImage">Cover image URL</label><input id="pImage" placeholder="images/blog-4.jpg or https://..."></div>
           <div><label for="pExcerpt">Excerpt (short summary shown on cards)</label><textarea id="pExcerpt" rows="2" required></textarea></div>
-
           <div>
             <label>Body</label>
             <div class="editor-toolbar" id="bodyToolbar"></div>
             <div id="bodyEditor" contenteditable="true"></div>
             <p class="form-note">Use the toolbar above to format text and insert images — this is saved as the post body.</p>
           </div>
-
           <div class="flex-gap">
             <button type="submit" class="btn btn-primary">Save post</button>
             <button type="button" class="btn btn-outline" id="cancelEditBtn">Clear / New</button>
@@ -118,16 +112,45 @@
       </div>
     </div>
     </div>
-
+    <!-- ===== TAB: INITIATIVES ===== -->
+    <div class="tab-panel" id="initiativesTab">
+    <div class="grid-2" style="align-items:flex-start;">
+      <!-- Initiative list -->
+      <div>
+        <h3>Existing initiatives</h3>
+        <button class="btn btn-primary" id="newInitiativeBtn" style="margin-bottom:18px;">+ New initiative</button>
+        <div id="initiativesList"><p class="muted">Loading…</p></div>
+      </div>
+      <!-- Editor -->
+      <div>
+        <h3 id="initiativeEditorTitle">New initiative</h3>
+        <form class="box" id="initiativeForm">
+          <div><label for="iTitle">Title</label><input id="iTitle" required></div>
+          <div class="form-row">
+            <div><label for="iSlug">URL slug</label><input id="iSlug" placeholder="my-initiative-title" required></div>
+            <div><label for="iStatus">Status</label><input id="iStatus" placeholder="Ongoing / Pilot / As-needed / Completed" required></div>
+          </div>
+          <div><label for="iCategory">Category</label><input id="iCategory" placeholder="Education / Health / Livelihood..." required></div>
+          <div><label for="iImage">Image path or URL</label><input id="iImage" placeholder="images/initiative-7.jpg or https://..."></div>
+          <div><label for="iSummary">Summary (short, shown on cards)</label><textarea id="iSummary" rows="2" required></textarea></div>
+          <div><label for="iDetail">Detail (full write-up)</label><textarea id="iDetail" rows="6" required></textarea></div>
+          <div><label for="iImpact">Impact line</label><input id="iImpact" placeholder="e.g. 1,400+ children enrolled across 12 centers" required></div>
+          <div class="flex-gap">
+            <button type="submit" class="btn btn-primary">Save initiative</button>
+            <button type="button" class="btn btn-outline" id="cancelInitiativeEditBtn">Clear / New</button>
+          </div>
+          <p class="form-status" id="initiativeStatus"></p>
+        </form>
+      </div>
+    </div>
+    </div>
     <!-- ===== TAB: PAGE CONTENT ===== -->
     <div class="tab-panel" id="pagesTab">
       <p class="muted" style="max-width:60ch;">Edit the text shown on key site pages. Changes here update the live page immediately — no need to touch any HTML files.</p>
-
       <div class="flex-gap" id="pageSelector" style="margin:20px 0;">
         <button class="btn btn-outline page-select-btn" data-page="home" style="padding:8px 18px;font-size:.85rem;">Home</button>
         <button class="btn btn-outline page-select-btn" data-page="about" style="padding:8px 18px;font-size:.85rem;">About Us</button>
       </div>
-
       <form class="box" id="pageForm">
         <div id="pageFieldsContainer"></div>
         <div class="flex-gap">
@@ -138,26 +161,21 @@
     </div>
   </div>
 </section>
-
 <div id="footer-mount"></div>
 <script src="js/site.js"></script>
-
 <!-- Firebase SDKs (compat build — simplest for plain HTML/JS sites) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="js/firebase.js"></script>
-
 <script>
 mountChrome('');
-
 const loginShell = document.getElementById('loginShell');
 const adminShell = document.getElementById('adminShell');
 const loginForm = document.getElementById('loginForm');
 const loginStatus = document.getElementById('loginStatus');
 const logoutBtn = document.getElementById('logoutBtn');
 const whoami = document.getElementById('whoami');
-
 loginForm.addEventListener('submit', (e) => {
   e.preventDefault();
   loginStatus.textContent = '';
@@ -167,21 +185,19 @@ loginForm.addEventListener('submit', (e) => {
     loginStatus.textContent = "Login failed — check your email and password.";
   });
 });
-
 logoutBtn.addEventListener('click', () => adminLogout());
-
 onAdminAuthChange(user => {
   if(user){
     loginShell.style.display = 'none';
     adminShell.style.display = 'block';
     whoami.textContent = 'Signed in as ' + user.email;
     refreshPostsList();
+    refreshInitiativesList();
   } else {
     loginShell.style.display = 'flex';
     adminShell.style.display = 'none';
   }
 });
-
 // ---------- TABS ----------
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -191,16 +207,13 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.getElementById(btn.dataset.tab).classList.add('active');
   });
 });
-
 // ---------- POST EDITOR ----------
-
 const postForm = document.getElementById('postForm');
 const postsList = document.getElementById('postsList');
 const editorTitle = document.getElementById('editorTitle');
 const bodyEditor = document.getElementById('bodyEditor');
 const postStatus = document.getElementById('postStatus');
 let editingId = null;
-
 // Build the rich-text toolbar (headings, bold/italic, lists, links, images, quote)
 const TOOLBAR_BUTTONS = [
   { label: 'H1', cmd: 'formatBlock', val: 'h1' },
@@ -215,7 +228,6 @@ const TOOLBAR_BUTTONS = [
   { label: 'Link', cmd: 'createLink' },
   { label: '🖼 Image', cmd: 'insertImage' },
 ];
-
 const toolbarEl = document.getElementById('bodyToolbar');
 TOOLBAR_BUTTONS.forEach(b => {
   const btn = document.createElement('button');
@@ -236,7 +248,6 @@ TOOLBAR_BUTTONS.forEach(b => {
   });
   toolbarEl.appendChild(btn);
 });
-
 function resetForm(){
   editingId = null;
   editorTitle.textContent = 'New post';
@@ -244,10 +255,8 @@ function resetForm(){
   bodyEditor.innerHTML = '';
   postStatus.textContent = '';
 }
-
 document.getElementById('newPostBtn').addEventListener('click', resetForm);
 document.getElementById('cancelEditBtn').addEventListener('click', resetForm);
-
 async function refreshPostsList(){
   postsList.innerHTML = '<p class="muted">Loading…</p>';
   try{
@@ -268,7 +277,6 @@ async function refreshPostsList(){
         </div>
       </div>
     `).join('');
-
     postsList.querySelectorAll('[data-edit]').forEach(btn => {
       btn.addEventListener('click', () => loadPostIntoForm(posts.find(p => p.id === btn.dataset.edit)));
     });
@@ -284,7 +292,6 @@ async function refreshPostsList(){
     postsList.innerHTML = '<p class="muted">Could not load posts. Check your Firebase setup (see README).</p>';
   }
 }
-
 function loadPostIntoForm(p){
   editingId = p.id;
   editorTitle.textContent = 'Editing: ' + p.title;
@@ -298,12 +305,10 @@ function loadPostIntoForm(p){
   bodyEditor.innerHTML = p.body || '';
   window.scrollTo({top: 0, behavior:'smooth'});
 }
-
 postForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   postStatus.style.color = 'var(--leaf)';
   postStatus.textContent = 'Saving…';
-
   const post = {
     title: document.getElementById('pTitle').value.trim(),
     slug: document.getElementById('pSlug').value.trim().toLowerCase().replace(/\s+/g,'-'),
@@ -314,7 +319,6 @@ postForm.addEventListener('submit', async (e) => {
     excerpt: document.getElementById('pExcerpt').value.trim(),
     body: bodyEditor.innerHTML
   };
-
   try{
     await savePostToDB(post, editingId);
     postStatus.textContent = 'Saved.';
@@ -325,7 +329,93 @@ postForm.addEventListener('submit', async (e) => {
     postStatus.textContent = 'Could not save — check your Firebase setup (see README).';
   }
 });
-
+// ---------- INITIATIVE EDITOR ----------
+const initiativeForm = document.getElementById('initiativeForm');
+const initiativesList = document.getElementById('initiativesList');
+const initiativeEditorTitle = document.getElementById('initiativeEditorTitle');
+const initiativeStatus = document.getElementById('initiativeStatus');
+let editingInitiativeId = null;
+function resetInitiativeForm(){
+  editingInitiativeId = null;
+  initiativeEditorTitle.textContent = 'New initiative';
+  initiativeForm.reset();
+  initiativeStatus.textContent = '';
+}
+document.getElementById('newInitiativeBtn').addEventListener('click', resetInitiativeForm);
+document.getElementById('cancelInitiativeEditBtn').addEventListener('click', resetInitiativeForm);
+async function refreshInitiativesList(){
+  initiativesList.innerHTML = '<p class="muted">Loading…</p>';
+  try{
+    const items = await fetchInitiativesFromDB();
+    if(items.length === 0){
+      initiativesList.innerHTML = '<p class="muted">No initiatives yet — create your first one.</p>';
+      return;
+    }
+    items.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+    initiativesList.innerHTML = items.map(it => `
+      <div class="post-row">
+        <div>
+          <strong>${it.title}</strong><br>
+          <span class="meta">${it.category || ''} · ${it.status || ''}</span>
+        </div>
+        <div class="flex-gap">
+          <button class="btn btn-outline" style="padding:6px 14px;font-size:.85rem;" data-edit="${it.id}">Edit</button>
+          <button class="btn btn-outline" style="padding:6px 14px;font-size:.85rem;color:#c0392b;border-color:#c0392b;" data-del="${it.id}">Delete</button>
+        </div>
+      </div>
+    `).join('');
+    initiativesList.querySelectorAll('[data-edit]').forEach(btn => {
+      btn.addEventListener('click', () => loadInitiativeIntoForm(items.find(it => it.id === btn.dataset.edit)));
+    });
+    initiativesList.querySelectorAll('[data-del]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if(confirm('Delete this initiative? This cannot be undone.')){
+          await deleteInitiativeFromDB(btn.dataset.del);
+          refreshInitiativesList();
+        }
+      });
+    });
+  } catch(err){
+    initiativesList.innerHTML = '<p class="muted">Could not load initiatives. Check your Firebase setup (see README).</p>';
+  }
+}
+function loadInitiativeIntoForm(it){
+  editingInitiativeId = it.id;
+  initiativeEditorTitle.textContent = 'Editing: ' + it.title;
+  document.getElementById('iTitle').value = it.title || '';
+  document.getElementById('iSlug').value = it.slug || '';
+  document.getElementById('iStatus').value = it.status || '';
+  document.getElementById('iCategory').value = it.category || '';
+  document.getElementById('iImage').value = it.image || '';
+  document.getElementById('iSummary').value = it.summary || '';
+  document.getElementById('iDetail').value = it.detail || '';
+  document.getElementById('iImpact').value = it.impact || '';
+  window.scrollTo({top: 0, behavior:'smooth'});
+}
+initiativeForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  initiativeStatus.style.color = 'var(--leaf)';
+  initiativeStatus.textContent = 'Saving…';
+  const initiative = {
+    title: document.getElementById('iTitle').value.trim(),
+    slug: document.getElementById('iSlug').value.trim().toLowerCase().replace(/\s+/g,'-'),
+    status: document.getElementById('iStatus').value.trim(),
+    category: document.getElementById('iCategory').value.trim(),
+    image: document.getElementById('iImage').value.trim() || 'images/initiative-1.jpg',
+    summary: document.getElementById('iSummary').value.trim(),
+    detail: document.getElementById('iDetail').value.trim(),
+    impact: document.getElementById('iImpact').value.trim()
+  };
+  try{
+    await saveInitiativeToDB(initiative, editingInitiativeId);
+    initiativeStatus.textContent = 'Saved.';
+    resetInitiativeForm();
+    refreshInitiativesList();
+  } catch(err){
+    initiativeStatus.style.color = '#c0392b';
+    initiativeStatus.textContent = 'Could not save — check your Firebase setup (see README).';
+  }
+});
 // ---------- PAGE CONTENT EDITOR ----------
 // Defines which fields exist per page. Must match the id="cms-{page}-{field}"
 // elements in that page's HTML (index.html, about.html, etc.)
@@ -343,12 +433,10 @@ const PAGE_FIELD_DEFS = {
     { field: 'missionText', label: '"Mission & Vision" text', rich: true },
   ]
 };
-
 let currentPageId = 'home';
 const pageFieldsContainer = document.getElementById('pageFieldsContainer');
 const pageForm = document.getElementById('pageForm');
 const pageStatus = document.getElementById('pageStatus');
-
 document.querySelectorAll('.page-select-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.page-select-btn').forEach(b => b.classList.remove('btn-primary'));
@@ -357,13 +445,11 @@ document.querySelectorAll('.page-select-btn').forEach(btn => {
     loadPageEditor(currentPageId);
   });
 });
-
 async function loadPageEditor(pageId){
   pageStatus.textContent = '';
   const defs = PAGE_FIELD_DEFS[pageId] || [];
   let existing = {};
   try{ existing = (await getPageContent(pageId)) || {}; }catch(e){}
-
   pageFieldsContainer.innerHTML = defs.map(d => `
     <div class="page-field">
       <label>${d.label}</label>
@@ -374,7 +460,6 @@ async function loadPageEditor(pageId){
     </div>
   `).join('');
 }
-
 pageForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   pageStatus.style.color = 'var(--leaf)';
@@ -391,11 +476,9 @@ pageForm.addEventListener('submit', async (e) => {
     pageStatus.textContent = 'Could not save — check your Firebase setup (see README).';
   }
 });
-
 // load Home editor by default once logged in
 document.querySelector('.page-select-btn[data-page="home"]').classList.add('btn-primary');
 loadPageEditor('home');
-
 </script>
 </body>
 </html>
