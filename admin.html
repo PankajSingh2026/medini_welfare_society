@@ -71,6 +71,7 @@
     <div class="tab-bar">
       <button class="tab-btn active" data-tab="postsTab">Blog Posts</button>
       <button class="tab-btn" data-tab="initiativesTab">Initiatives</button>
+      <button class="tab-btn" data-tab="noticesTab">Notices</button>
       <button class="tab-btn" data-tab="pagesTab">Page Content</button>
     </div>
     <!-- ===== TAB: BLOG POSTS ===== -->
@@ -148,6 +149,39 @@
       </div>
     </div>
     </div>
+    <!-- ===== TAB: NOTICES ===== -->
+    <div class="tab-panel" id="noticesTab">
+    <div class="grid-2" style="align-items:flex-start;">
+      <!-- Notice list -->
+      <div>
+        <h3>Existing notices</h3>
+        <button class="btn btn-primary" id="newNoticeBtn" style="margin-bottom:18px;">+ New notice</button>
+        <div id="noticesList"><p class="muted">Loading…</p></div>
+      </div>
+      <!-- Editor -->
+      <div>
+        <h3 id="noticeEditorTitle">New notice</h3>
+        <form class="box" id="noticeForm">
+          <div><label for="nHeadline">Headline</label><input id="nHeadline" required></div>
+          <div class="form-row">
+            <div><label for="nSlug">URL slug</label><input id="nSlug" placeholder="my-notice-headline" required></div>
+            <div><label for="nDate">Date</label><input id="nDate" type="date" required></div>
+          </div>
+          <div>
+            <label>Details</label>
+            <div class="editor-toolbar" id="noticeBodyToolbar"></div>
+            <div id="noticeBodyEditor" contenteditable="true"></div>
+            <p class="form-note">Use the toolbar above to format the notice text — this is saved as the notice body.</p>
+          </div>
+          <div class="flex-gap">
+            <button type="submit" class="btn btn-primary">Save notice</button>
+            <button type="button" class="btn btn-outline" id="cancelNoticeEditBtn">Clear / New</button>
+          </div>
+          <p class="form-status" id="noticeStatus"></p>
+        </form>
+      </div>
+    </div>
+    </div>
     <!-- ===== TAB: PAGE CONTENT ===== -->
     <div class="tab-panel" id="pagesTab">
       <p class="muted" style="max-width:60ch;">Edit the text shown on key site pages. Changes here update the live page immediately — no need to touch any HTML files.</p>
@@ -197,6 +231,7 @@ onAdminAuthChange(user => {
     whoami.textContent = 'Signed in as ' + user.email;
     refreshPostsList();
     refreshInitiativesList();
+    refreshNoticesList();
   } else {
     loginShell.style.display = 'flex';
     adminShell.style.display = 'none';
@@ -451,6 +486,107 @@ document.getElementById('importInitiativesBtn').addEventListener('click', async 
   } catch(err){
     status.style.color = '#c0392b';
     status.textContent = 'Import failed: ' + (err.message || err) + '. Likely a Firestore permissions issue — see README.';
+  }
+});
+// ---------- NOTICE EDITOR ----------
+const noticeForm = document.getElementById('noticeForm');
+const noticesList = document.getElementById('noticesList');
+const noticeEditorTitle = document.getElementById('noticeEditorTitle');
+const noticeBodyEditor = document.getElementById('noticeBodyEditor');
+const noticeStatus = document.getElementById('noticeStatus');
+let editingNoticeId = null;
+// Reuse the same toolbar button definitions as the blog editor, wired to this second editable box.
+const noticeToolbarEl = document.getElementById('noticeBodyToolbar');
+TOOLBAR_BUTTONS.forEach(b => {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.title = b.title || b.label;
+  btn.innerHTML = b.bold ? `<b>${b.label}</b>` : (b.italic ? `<i>${b.label}</i>` : b.label);
+  btn.addEventListener('click', () => {
+    noticeBodyEditor.focus();
+    if(b.cmd === 'createLink'){
+      const url = prompt('Link URL:');
+      if(url) document.execCommand('createLink', false, url);
+    } else if(b.cmd === 'insertImage'){
+      const url = prompt('Image URL (paste a link, or upload your image to /images in GitHub first and use images/your-file.jpg):');
+      if(url) document.execCommand('insertImage', false, url);
+    } else {
+      document.execCommand(b.cmd, false, b.val || null);
+    }
+  });
+  noticeToolbarEl.appendChild(btn);
+});
+function resetNoticeForm(){
+  editingNoticeId = null;
+  noticeEditorTitle.textContent = 'New notice';
+  noticeForm.reset();
+  noticeBodyEditor.innerHTML = '';
+  noticeStatus.textContent = '';
+}
+document.getElementById('newNoticeBtn').addEventListener('click', resetNoticeForm);
+document.getElementById('cancelNoticeEditBtn').addEventListener('click', resetNoticeForm);
+async function refreshNoticesList(){
+  noticesList.innerHTML = '<p class="muted">Loading…</p>';
+  try{
+    const notices = await fetchNoticesFromDB();
+    if(notices.length === 0){
+      noticesList.innerHTML = '<p class="muted">No notices yet — create your first one.</p>';
+      return;
+    }
+    noticesList.innerHTML = notices.map(n => `
+      <div class="post-row">
+        <div>
+          <strong>${n.headline}</strong><br>
+          <span class="meta">${n.date || ''} · notice.html?slug=${n.slug || ''}</span>
+        </div>
+        <div class="flex-gap">
+          <button class="btn btn-outline" style="padding:6px 14px;font-size:.85rem;" data-edit="${n.id}">Edit</button>
+          <button class="btn btn-outline" style="padding:6px 14px;font-size:.85rem;color:#c0392b;border-color:#c0392b;" data-del="${n.id}">Delete</button>
+        </div>
+      </div>
+    `).join('');
+    noticesList.querySelectorAll('[data-edit]').forEach(btn => {
+      btn.addEventListener('click', () => loadNoticeIntoForm(notices.find(n => n.id === btn.dataset.edit)));
+    });
+    noticesList.querySelectorAll('[data-del]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if(confirm('Delete this notice? This cannot be undone.')){
+          await deleteNoticeFromDB(btn.dataset.del);
+          refreshNoticesList();
+        }
+      });
+    });
+  } catch(err){
+    noticesList.innerHTML = '<p class="muted">Could not load notices: ' + (err.message || err) + '</p>';
+  }
+}
+function loadNoticeIntoForm(n){
+  editingNoticeId = n.id;
+  noticeEditorTitle.textContent = 'Editing: ' + n.headline;
+  document.getElementById('nHeadline').value = n.headline || '';
+  document.getElementById('nSlug').value = n.slug || '';
+  document.getElementById('nDate').value = n.date || '';
+  noticeBodyEditor.innerHTML = n.body || '';
+  window.scrollTo({top: 0, behavior:'smooth'});
+}
+noticeForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  noticeStatus.style.color = 'var(--leaf)';
+  noticeStatus.textContent = 'Saving…';
+  const notice = {
+    headline: document.getElementById('nHeadline').value.trim(),
+    slug: document.getElementById('nSlug').value.trim().toLowerCase().replace(/\s+/g,'-'),
+    date: document.getElementById('nDate').value,
+    body: noticeBodyEditor.innerHTML
+  };
+  try{
+    await saveNoticeToDB(notice, editingNoticeId);
+    noticeStatus.textContent = 'Saved.';
+    resetNoticeForm();
+    refreshNoticesList();
+  } catch(err){
+    noticeStatus.style.color = '#c0392b';
+    noticeStatus.textContent = 'Could not save: ' + (err.message || err) + '. Check that Firestore rules include a block for the notices collection.';
   }
 });
 // ---------- PAGE CONTENT EDITOR ----------
