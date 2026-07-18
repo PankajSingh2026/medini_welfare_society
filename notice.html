@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notice — Medini Welfare Society</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="header-mount"></div>
+
+<section class="section" id="notice-content">
+  <div class="wrap post-body">
+    <p class="muted">Loading…</p>
+  </div>
+</section>
+
+<div id="footer-mount"></div>
+<script src="js/site.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="js/firebase.js"></script>
+<script>
+  mountChrome('notices');
+
+  function renderNotice(n){
+    document.title = n.headline + ' — Medini Welfare Society';
+    document.querySelector('#notice-content .wrap').innerHTML = `
+      <span class="eyebrow">Notice</span>
+      <h1>${n.headline}</h1>
+      <p class="post-hero-meta">${fmtDate(n.date)}</p>
+      ${n.body || ''}
+      <div class="mt-40"><a href="notices.html" class="btn btn-outline">← All notices</a></div>
+    `;
+  }
+
+  const slug = new URLSearchParams(location.search).get('slug');
+
+  fetchNoticeBySlugFromDB(slug)
+    .then(n => {
+      if(n) return renderNotice(n);
+      document.querySelector('#notice-content .wrap').innerHTML = '<p class="muted">Could not load this notice.</p>';
+    })
+    .catch(()=>{
+      document.querySelector('#notice-content .wrap').innerHTML = '<p class="muted">Could not load this notice.</p>';
+    });
+</script>
+</body>
+</html>
