@@ -100,6 +100,19 @@
   </div>
 </section>
 
+<!-- ============ SOCIETY VIDEOS ============ -->
+<section class="section alt" id="videosSection" style="display:none;">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow" data-i18n="home.videosEyebrow">Society Videos</span>
+      <h2 data-i18n="home.videosHeading">Watch our work in action</h2>
+    </div>
+  </div>
+  <div class="video-ticker-viewport">
+    <div class="video-ticker-track" id="videoTickerTrack"></div>
+  </div>
+</section>
+
 <!-- ============ CTA ============ -->
 <section class="section">
   <div class="wrap">
@@ -130,6 +143,40 @@
   let currentFeaturedInitiatives = null;
   let currentLatestPosts = null;
   let currentTickerNotices = null;
+  let currentVideos = null;
+
+  // Society videos, shown below as a right-to-left scrolling row of cards.
+  function renderVideos(videos){
+    currentVideos = videos;
+    const section = document.getElementById('videosSection');
+    const track = document.getElementById('videoTickerTrack');
+    if(!videos || videos.length === 0){ section.style.display = 'none'; return; }
+    const sorted = videos.slice().sort((a,b) => new Date(b.date) - new Date(a.date));
+    const cardsHTML = sorted.map(v => {
+      const ytId = extractYouTubeId(v.videoUrl);
+      const thumb = ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : 'images/hero.jpg';
+      const desc = t(v, 'description');
+      return `
+        <a class="video-card" href="${v.videoUrl}" target="_blank" rel="noopener">
+          <div class="video-thumb-wrap">
+            <img src="${thumb}" alt="${t(v, 'title')}" loading="lazy">
+            <span class="video-play">▶</span>
+          </div>
+          <div class="video-card-body">
+            <h4>${t(v, 'title')}</h4>
+            <span class="video-date">${fmtDate(v.date)}</span>
+            ${desc ? `<p class="video-desc">${desc}</p>` : ''}
+          </div>
+        </a>
+      `;
+    }).join('');
+    // Content is duplicated so the CSS animation (translateX 0 → -50%) loops seamlessly.
+    track.innerHTML = cardsHTML + cardsHTML;
+    section.style.display = '';
+  }
+  fetchVideosFromDB()
+    .then(renderVideos)
+    .catch(()=>{ const el = document.getElementById('videosSection'); if(el) el.style.display = 'none'; });
 
   // Top 2 notices, shown as a right-to-left scrolling strip below the nav bar.
   function renderNoticeTicker(notices){
@@ -205,6 +252,7 @@
     if(currentFeaturedInitiatives) renderFeaturedInitiatives(currentFeaturedInitiatives);
     if(currentLatestPosts) renderLatestPosts(currentLatestPosts);
     if(currentTickerNotices) renderNoticeTicker(currentTickerNotices);
+    if(currentVideos) renderVideos(currentVideos);
   });
 </script>
 </body>
