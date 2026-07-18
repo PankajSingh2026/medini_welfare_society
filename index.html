@@ -11,6 +11,16 @@
 
 <div id="header-mount"></div>
 
+<!-- ============ NOTICE TICKER ============ -->
+<div class="notice-ticker" id="noticeTicker" style="display:none;">
+  <div class="wrap notice-ticker-inner">
+    <span class="notice-ticker-label" data-i18n="nav.notices">Notices</span>
+    <div class="notice-ticker-viewport">
+      <div class="notice-ticker-track" id="noticeTickerTrack"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ============ HERO ============ -->
 <section class="hero">
   <div class="wrap">
@@ -119,6 +129,25 @@
 
   let currentFeaturedInitiatives = null;
   let currentLatestPosts = null;
+  let currentTickerNotices = null;
+
+  // Top 2 notices, shown as a right-to-left scrolling strip below the nav bar.
+  function renderNoticeTicker(notices){
+    currentTickerNotices = notices;
+    const ticker = document.getElementById('noticeTicker');
+    const track = document.getElementById('noticeTickerTrack');
+    if(!notices || notices.length === 0){ ticker.style.display = 'none'; return; }
+    const top2 = notices.slice().sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0,2);
+    const itemsHTML = top2.map(n => `
+      <a href="notice.html?slug=${n.slug}"><span class="notice-ticker-date">${fmtDate(n.date)}</span>${t(n, 'headline')}</a>
+    `).join('');
+    // Content is duplicated so the CSS animation (translateX 0 → -50%) loops seamlessly.
+    track.innerHTML = itemsHTML + itemsHTML;
+    ticker.style.display = '';
+  }
+  fetchNoticesFromDB()
+    .then(renderNoticeTicker)
+    .catch(()=>{ const el = document.getElementById('noticeTicker'); if(el) el.style.display = 'none'; });
 
   function renderFeaturedInitiatives(items){
     currentFeaturedInitiatives = items;
@@ -163,6 +192,7 @@
   document.addEventListener('medini:langchange', () => {
     if(currentFeaturedInitiatives) renderFeaturedInitiatives(currentFeaturedInitiatives);
     if(currentLatestPosts) renderLatestPosts(currentLatestPosts);
+    if(currentTickerNotices) renderNoticeTicker(currentTickerNotices);
   });
 </script>
 </body>
