@@ -162,11 +162,17 @@
       </div>
     `).join('');
   }
-  // Try the live database first (initiatives created/edited via admin.html).
-  // Falls back to the bundled data/initiatives.json if Firebase isn't set up yet.
+  // Initiatives come from Firestore only (created/edited/deleted via admin.html).
+  // No static-JSON fallback, so deleting everything in admin actually
+  // clears this section instead of reviving the old static initiatives.
   fetchInitiativesFromDB()
-    .then(items => items.length ? renderFeaturedInitiatives(items) : loadJSON('data/initiatives.json').then(renderFeaturedInitiatives))
-    .catch(() => loadJSON('data/initiatives.json').then(renderFeaturedInitiatives))
+    .then(items => {
+      if(items.length === 0){
+        document.getElementById('featured-initiatives').innerHTML = '<p class="muted">Initiatives will appear here.</p>';
+        return;
+      }
+      renderFeaturedInitiatives(items);
+    })
     .catch(()=>{ document.getElementById('featured-initiatives').innerHTML = '<p class="muted">Initiatives will appear here.</p>'; });
 
   function renderLatestPosts(posts){
@@ -181,11 +187,17 @@
       </div>
     `).join('');
   }
-  // Try the live database first (posts created via admin.html).
-  // Falls back to the bundled data/blog.json if Firebase isn't set up yet.
+  // Posts come from Firestore only (created/edited/deleted via admin.html).
+  // No static-JSON fallback, so deleting everything in admin actually
+  // clears this section instead of reviving the old static posts.
   fetchPostsFromDB()
-    .then(posts => posts.length ? renderLatestPosts(posts) : loadJSON('data/blog.json').then(renderLatestPosts))
-    .catch(() => loadJSON('data/blog.json').then(renderLatestPosts))
+    .then(posts => {
+      if(posts.length === 0){
+        document.getElementById('latest-posts').innerHTML = '<p class="muted">Blog posts will appear here.</p>';
+        return;
+      }
+      renderLatestPosts(posts);
+    })
     .catch(()=>{ document.getElementById('latest-posts').innerHTML = '<p class="muted">Blog posts will appear here.</p>'; });
 
   // Re-render with the other language's fields when the header's language switch is used.
