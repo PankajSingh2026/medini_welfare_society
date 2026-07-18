@@ -131,6 +131,14 @@
 
 <div id="footer-mount"></div>
 
+<!-- ============ VIDEO PLAYER MODAL ============ -->
+<div class="video-modal" id="videoModal">
+  <div class="video-modal-inner">
+    <button type="button" class="video-modal-close" id="videoModalClose" aria-label="Close">&times;</button>
+    <div class="video-modal-frame" id="videoModalFrame"></div>
+  </div>
+</div>
+
 <script src="js/site.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -146,6 +154,7 @@
   let currentVideos = null;
 
   // Society videos, shown below as a right-to-left scrolling row of cards.
+  // Clicking a card plays the video inline in a modal instead of leaving the site.
   function renderVideos(videos){
     currentVideos = videos;
     const section = document.getElementById('videosSection');
@@ -156,8 +165,9 @@
       const ytId = extractYouTubeId(v.videoUrl);
       const thumb = ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : 'images/hero.jpg';
       const desc = t(v, 'description');
+      const safeUrl = (v.videoUrl || '').replace(/"/g, '&quot;');
       return `
-        <a class="video-card" href="${v.videoUrl}" target="_blank" rel="noopener">
+        <div class="video-card" data-yt-id="${ytId}" data-video-url="${safeUrl}" role="button" tabindex="0">
           <div class="video-thumb-wrap">
             <img src="${thumb}" alt="${t(v, 'title')}" loading="lazy">
             <span class="video-play">▶</span>
@@ -167,7 +177,7 @@
             <span class="video-date">${fmtDate(v.date)}</span>
             ${desc ? `<p class="video-desc">${desc}</p>` : ''}
           </div>
-        </a>
+        </div>
       `;
     }).join('');
     // Content is duplicated so the CSS animation (translateX 0 → -50%) loops seamlessly.
@@ -177,6 +187,42 @@
   fetchVideosFromDB()
     .then(renderVideos)
     .catch(()=>{ const el = document.getElementById('videosSection'); if(el) el.style.display = 'none'; });
+
+  // ---------- INLINE VIDEO PLAYER MODAL ----------
+  const videoModal = document.getElementById('videoModal');
+  const videoModalFrame = document.getElementById('videoModalFrame');
+  function openVideoModal(ytId, fallbackUrl){
+    if(ytId){
+      videoModalFrame.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0" title="Video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+      videoModal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    } else if(fallbackUrl){
+      // Link didn't match a recognizable YouTube ID — fall back to opening it directly.
+      window.open(fallbackUrl, '_blank', 'noopener');
+    }
+  }
+  function closeVideoModal(){
+    videoModal.classList.remove('open');
+    videoModalFrame.innerHTML = ''; // stops playback
+    document.body.style.overflow = '';
+  }
+  // Event delegation on the (persistent) track container — works for both
+  // the original and the duplicated set of cards, and survives re-renders.
+  document.getElementById('videoTickerTrack').addEventListener('click', (e) => {
+    const card = e.target.closest('.video-card');
+    if(!card) return;
+    openVideoModal(card.dataset.ytId, card.dataset.videoUrl);
+  });
+  document.getElementById('videoTickerTrack').addEventListener('keydown', (e) => {
+    if(e.key !== 'Enter' && e.key !== ' ') return;
+    const card = e.target.closest('.video-card');
+    if(!card) return;
+    e.preventDefault();
+    openVideoModal(card.dataset.ytId, card.dataset.videoUrl);
+  });
+  document.getElementById('videoModalClose').addEventListener('click', closeVideoModal);
+  videoModal.addEventListener('click', (e) => { if(e.target === videoModal) closeVideoModal(); });
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeVideoModal(); });
 
   // Top 2 notices, shown as a right-to-left scrolling strip below the nav bar.
   function renderNoticeTicker(notices){
