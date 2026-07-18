@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Post — Medini Welfare Society</title>
+<meta name="description" content="A story from Medini Welfare Society's blog." id="metaDescription">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -26,6 +27,8 @@
 
   function renderPost(p){
     document.title = p.title + ' — Medini Welfare Society';
+    const metaDesc = document.getElementById('metaDescription');
+    if(metaDesc && p.excerpt) metaDesc.setAttribute('content', p.excerpt);
     document.querySelector('#post-content .wrap').innerHTML = `
       <span class="eyebrow">${p.category}</span>
       <h1>${p.title}</h1>

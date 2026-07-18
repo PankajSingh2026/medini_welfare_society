@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Initiative — Medini Welfare Society</title>
+<meta name="description" content="Read about one of Medini Welfare Society's community programs." id="metaDescription">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -25,6 +26,8 @@
 
   function renderInitiative(it){
     document.title = it.title + ' — Medini Welfare Society';
+    const metaDesc = document.getElementById('metaDescription');
+    if(metaDesc && it.summary) metaDesc.setAttribute('content', it.summary);
     document.querySelector('#initiative-content .wrap').innerHTML = `
       <span class="eyebrow">${it.category} · ${it.status}</span>
       <h1>${it.title}</h1>
