@@ -220,36 +220,32 @@ p{margin:0 0 1em;}
   display:flex;align-items:center;justify-content:center;font-size:1.15rem;
   padding-left:3px;
 }
+.video-thumb-wrap iframe{
+  position:absolute;top:0;left:0;width:100%;height:100%;border:0;
+}
+.video-inline-close{
+  position:absolute;top:8px;right:8px;z-index:2;
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(0,0,0,.6);color:var(--white);border:none;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.85rem;cursor:pointer;
+}
+.video-inline-close:hover{background:rgba(0,0,0,.85);}
 .video-card-body{padding:16px 18px;display:flex;flex-direction:column;gap:5px;}
 .video-card h4{margin:0;font-size:1rem;color:var(--ink);font-family:var(--display);font-weight:600;}
+.video-meta-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
 .video-date{font-family:var(--mono);font-size:.72rem;color:#777;}
+.video-yt-link{
+  font-family:var(--mono);font-size:.7rem;font-weight:600;color:var(--leaf);
+  white-space:nowrap;
+}
+.video-yt-link:hover{color:var(--marigold);}
 .video-desc{font-size:.85rem;color:#55534c;margin:4px 0 0;}
 @keyframes video-scroll{
   from{transform:translateX(0);}
   to{transform:translateX(-50%);}
 }
-
-/* ---------- VIDEO PLAYER MODAL ---------- */
-.video-modal{
-  position:fixed;inset:0;background:rgba(15,15,20,.88);
-  z-index:200;padding:24px;
-  display:none;align-items:center;justify-content:center;
-}
-.video-modal.open{display:flex;}
-.video-modal-inner{width:100%;max-width:900px;position:relative;}
-.video-modal-frame{
-  position:relative;width:100%;aspect-ratio:16/9;
-  background:#000;border-radius:12px;overflow:hidden;
-}
-.video-modal-frame iframe{
-  position:absolute;top:0;left:0;width:100%;height:100%;border:0;
-}
-.video-modal-close{
-  position:absolute;top:-42px;right:0;
-  background:transparent;border:none;color:var(--white);font-size:2rem;line-height:1;
-  cursor:pointer;padding:4px 8px;
-}
-.video-modal-close:hover{color:var(--marigold);}
+.video-ticker-track.playing{animation-play-state:paused;}
 
 /* ---------- HERO ---------- */
 /* .hero{
