@@ -100,6 +100,11 @@ p{margin:0 0 1em;}
 .brand{
   display:flex;align-items:center;gap:10px;
   font-family:var(--display);font-weight:600;font-size:1.2rem;color:var(--ink);
+  /* The brand name is the one thing here allowed to shrink/wrap onto a 2nd
+     line when space is tight — min-width:0 overrides flexbox's default of
+     never shrinking a flex item below its content size, which is what was
+     squeezing .nav-links below and forcing THOSE to break mid-word instead. */
+  min-width:0;
 }
 .brand-logo{
   width:48px;
@@ -108,19 +113,25 @@ p{margin:0 0 1em;}
   border-radius:50%;
   flex-shrink:0;
 }
-.nav-links{display:flex;gap:28px;list-style:none;margin:0;padding:0;font-size:.95rem;font-weight:500;}
-.nav-links a{position:relative;padding:4px 0;}
+/* flex-shrink:0 + white-space:nowrap on the nav links/buttons below means
+   they always keep their natural width and never get squeezed narrower
+   than their own text — that squeezing (combined with the site-wide
+   word-break:break-word on body) was what caused "Hom/e", "Blo/g" etc. */
+.nav-links{display:flex;gap:28px;list-style:none;margin:0;padding:0;font-size:.95rem;font-weight:500;flex-shrink:0;}
+.nav-links a{position:relative;padding:4px 0;white-space:nowrap;}
 .nav-links a.active,.nav-links a:hover{color:var(--leaf);}
 .nav-cta{
   background:var(--ink);color:var(--white);
   padding:10px 20px;border-radius:30px;font-weight:600;font-size:.9rem;
   transition:background .2s;
+  white-space:nowrap;flex-shrink:0;
 }
 .nav-cta:hover{background:var(--leaf);}
 .lang-switch{
   background:transparent;border:1px solid var(--ink);color:var(--ink);
   border-radius:20px;padding:7px 14px;font-family:var(--mono);font-size:.78rem;
   cursor:pointer;margin-right:14px;font-weight:600;
+  white-space:nowrap;flex-shrink:0;
 }
 .lang-switch:hover{background:var(--ink);color:var(--white);}
 .nav-toggle{display:none;background:none;border:none;font-size:1.6rem;cursor:pointer;color:var(--ink);}
