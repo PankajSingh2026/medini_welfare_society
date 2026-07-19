@@ -483,6 +483,18 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--leaf);outline-of
 }
 @media(max-width:820px){.footer-grid{grid-template-columns:1fr 1fr;}}
 
+/* ---------- FOOTER SOCIAL LINKS ---------- */
+/* Overrides .footer-grid a's block/margin-bottom so these sit in a row,
+   not stacked like the link lists in the other footer columns. */
+.footer-social{display:flex;gap:10px;margin-top:16px;}
+.footer-social a{
+  display:flex;align-items:center;justify-content:center;
+  width:36px;height:36px;margin-bottom:0;border-radius:50%;
+  background:rgba(255,255,255,.08);color:#cfd3df;
+  transition:background .2s, color .2s, transform .2s;
+}
+.footer-social a:hover{background:var(--marigold);color:var(--ink);transform:translateY(-2px);}
+
 /* ---------- BREADCRUMB / PAGE HEAD ---------- */
 .page-head{
   padding:60px 0 40px;border-bottom:1px solid var(--rule);
