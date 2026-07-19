@@ -287,38 +287,40 @@
   });
 
   // ---------- PHOTO GALLERY CAROUSEL ----------
-  // Steps to the next photo every 3s with a right-to-left slide (same
-  // discrete block-move mechanic as the quote carousel below) — not a
-  // continuous scroll like the video ticker above. One real slide per photo,
-  // plus a duplicate of the 1st appended at the end so the track always
-  // moves left; once the duplicate is fully in view we snap back to slide 1
-  // with no transition, so the loop is seamless.
+  // Cards are the same fixed size/shape as the Society Video cards (300px
+  // wide, 16:9 thumbnail on top, title/date/description below). The whole
+  // row steps left by exactly one card's width every 3s — a discrete
+  // block-move, not a continuous scroll like the video ticker's CSS
+  // animation. The full card set is duplicated once so that after stepping
+  // through all the real cards, we can snap back to the start with no
+  // transition and the loop looks seamless.
   function renderPhotos(photos){
     currentPhotos = photos;
     const section = document.getElementById('photosSection');
     const track = document.getElementById('photoCarouselTrack');
     if(!photos || photos.length === 0){ section.style.display = 'none'; return; }
     const sorted = photos.slice().sort((a,b) => new Date(b.date) - new Date(a.date));
-    const slideHtml = (p) => {
+    const cardHtml = (p) => {
       const title = t(p, 'title');
+      const desc = t(p, 'description');
       const safeSrc = (p.imageUrl || '').replace(/"/g, '&quot;');
       const safeTitle = (title || '').replace(/"/g, '&quot;');
       return `
-      <div class="photo-slide">
-        <div class="photo-thumb-wrap" role="button" tabindex="0" aria-label="View full-size photo" data-full-src="${safeSrc}" data-title="${safeTitle}">
-          <img src="${p.imageUrl}" alt="${title}" loading="lazy">
-          <span class="photo-expand" aria-hidden="true">⤢</span>
+        <div class="photo-card">
+          <div class="photo-thumb-wrap" role="button" tabindex="0" aria-label="View full-size photo" data-full-src="${safeSrc}" data-title="${safeTitle}">
+            <img src="${p.imageUrl}" alt="${title}" loading="lazy">
+            <span class="photo-expand" aria-hidden="true">⤢</span>
+          </div>
+          <div class="photo-card-body">
+            <h4>${title}</h4>
+            <span class="photo-date">${fmtDate(p.date)}</span>
+            ${desc ? `<p class="photo-desc">${desc}</p>` : ''}
+          </div>
         </div>
-        <div class="photo-caption">
-          <h3>${title}</h3>
-          <p class="muted">${fmtDate(p.date)}</p>
-          ${t(p, 'description') ? `<p>${t(p, 'description')}</p>` : ''}
-        </div>
-      </div>
-    `;
+      `;
     };
-    const slidesHtml = sorted.map(slideHtml).join('');
-    track.innerHTML = sorted.length > 1 ? slidesHtml + slideHtml(sorted[0]) : slidesHtml;
+    const cardsHtml = sorted.map(cardHtml).join('');
+    track.innerHTML = sorted.length > 1 ? cardsHtml + cardsHtml : cardsHtml;
     section.style.display = '';
     initPhotoCarousel(sorted.length);
   }
@@ -329,19 +331,25 @@
     // previous timer first so intervals don't stack up and speed up the loop.
     if(photoCarouselIntervalId) clearInterval(photoCarouselIntervalId);
     track.style.transition = 'none';
-    track.style.transform = 'translateX(0%)';
+    track.style.transform = 'translateX(0px)';
     if(realCount <= 1) return; // nothing to cycle through
     let photoIndex = 0;
     photoCarouselIntervalId = setInterval(() => {
+      const firstCard = track.querySelector('.photo-card');
+      if(!firstCard) return;
+      // Measured live (not hardcoded) so this stays correct if the card
+      // width or gap ever changes in CSS, and across responsive breakpoints.
+      const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+      const step = firstCard.getBoundingClientRect().width + gap;
       photoIndex++;
       track.style.transition = 'transform .6s cubic-bezier(.4,0,.2,1)';
-      track.style.transform = `translateX(-${photoIndex * 100}%)`;
+      track.style.transform = `translateX(-${photoIndex * step}px)`;
       if(photoIndex === realCount){
         setTimeout(() => {
           track.style.transition = 'none';
           track.offsetHeight; // force reflow so 'none' takes effect before the transform change below
           photoIndex = 0;
-          track.style.transform = 'translateX(0%)';
+          track.style.transform = 'translateX(0px)';
         }, 650);
       }
     }, 3000);
