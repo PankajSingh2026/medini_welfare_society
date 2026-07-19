@@ -36,12 +36,15 @@
         <a href="initiatives.html" class="btn btn-outline" data-i18n="home.seeWork">See Our Work</a>
       </div>
     </div>
-    <!-- Two stacked images crossfade in place — same fixed frame (aspect-ratio
-         4:3, set in css/style.css .hero-art) no matter how many images an
-         admin has uploaded under Admin → Hero Images. No overlay box anymore. -->
+    <!-- Steps to the next image every 1s with a right-to-left slide, inside
+         the same fixed frame (aspect-ratio 4:3, set in css/style.css
+         .hero-art) no matter how many images an admin has uploaded under
+         Admin → Hero Images — same discrete block-move mechanic as the
+         quote and photo carousels elsewhere on this page. -->
     <div class="hero-art" id="heroArt">
-      <img src="images/hero.jpg" alt="Children at a Medini Welfare Society learning center" class="hero-img active" id="heroImgA">
-      <img src="" alt="" class="hero-img" id="heroImgB">
+      <div class="hero-slideshow-track" id="heroSlideshowTrack">
+        <img src="images/hero.jpg" alt="Children at a Medini Welfare Society learning center" class="hero-slide-img">
+      </div>
     </div>
   </div>
 </section>
@@ -185,34 +188,42 @@
   applyPageContent('home'); // overrides text above with anything saved via admin.html → Page Content
 
   // ---------- HERO IMAGE SLIDESHOW ----------
-  // Admin → Hero Images lets you upload any number of images; they rotate
-  // through here with a soft crossfade, always inside the exact same fixed
-  // frame (.hero-art, aspect-ratio 4:3 in css/style.css) — the frame size
-  // never changes, only which photo is showing. Falls back to the single
-  // static images/hero.jpg if nothing's been uploaded yet or Firestore is
-  // unreachable, so the hero never breaks.
+  // Admin → Hero Images lets you upload any number of images, shown here in
+  // that same "order" sequence. Every 1s the frame steps to the next image
+  // with a right-to-left slide — same discrete block-move mechanic as the
+  // quote and photo carousels below, just on a 1s cadence instead of 3s.
+  // The frame itself (.hero-art, aspect-ratio 4:3 in css/style.css) never
+  // changes size, only which photo is showing. One extra copy of the first
+  // image is appended after the real ones so the loop can snap back to the
+  // start with no transition, the same trick used by those other carousels.
+  // Falls back to the single static images/hero.jpg if nothing's been
+  // uploaded yet or Firestore is unreachable, so the hero never breaks.
   let heroSlideIntervalId = null;
   function startHeroSlideshow(images){
     const urls = (images && images.length > 0) ? images : ['images/hero.jpg'];
-    const imgA = document.getElementById('heroImgA');
-    const imgB = document.getElementById('heroImgB');
-    if(!imgA || !imgB) return;
+    const track = document.getElementById('heroSlideshowTrack');
+    if(!track) return;
+    const imgTag = (src, alt) => `<img src="${src}" alt="${alt || ''}" class="hero-slide-img" loading="lazy">`;
+    const slidesHtml = urls.map(u => imgTag(u, 'Medini Welfare Society')).join('');
+    track.innerHTML = urls.length > 1 ? slidesHtml + imgTag(urls[0], '') : slidesHtml;
     if(heroSlideIntervalId) clearInterval(heroSlideIntervalId);
-    imgA.src = urls[0];
-    imgA.classList.add('active');
-    imgB.classList.remove('active');
+    track.style.transition = 'none';
+    track.style.transform = 'translateX(0%)';
     if(urls.length <= 1) return; // only one image — nothing to cycle through
     let index = 0;
-    let showingA = true;
     heroSlideIntervalId = setInterval(() => {
-      index = (index + 1) % urls.length;
-      const nextImg = showingA ? imgB : imgA;
-      const curImg = showingA ? imgA : imgB;
-      nextImg.src = urls[index];
-      nextImg.classList.add('active');
-      curImg.classList.remove('active');
-      showingA = !showingA;
-    }, 4000);
+      index++;
+      track.style.transition = 'transform .6s cubic-bezier(.4,0,.2,1)';
+      track.style.transform = `translateX(-${index * 100}%)`;
+      if(index === urls.length){
+        setTimeout(() => {
+          track.style.transition = 'none';
+          track.offsetHeight; // force reflow so 'none' takes effect before the transform change below
+          index = 0;
+          track.style.transform = 'translateX(0%)';
+        }, 650);
+      }
+    }, 1000);
   }
   fetchHeroImagesFromDB()
     .then(images => startHeroSlideshow(images.map(i => i.imageUrl).filter(Boolean)))
