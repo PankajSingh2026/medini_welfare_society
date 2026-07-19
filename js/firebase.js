@@ -143,6 +143,29 @@ async function savePhotoToDB(photo, existingId){
 async function deletePhotoFromDB(id){
   await db.collection('photos').doc(id).delete();
 }
+// ---------- HERO IMAGE HELPERS (Firestore) ----------
+// The home page's rotating hero banner images live in a Firestore
+// collection called "heroImages". Each document: { title, imageUrl, order }
+// "order" (lower first) controls the rotation sequence; ties fall back to
+// alphabetical by title so the order is always stable.
+async function fetchHeroImagesFromDB(){
+  const snap = await db.collection('heroImages').get();
+  const items = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  items.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0) || (a.title || '').localeCompare(b.title || ''));
+  return items;
+}
+async function saveHeroImageToDB(heroImage, existingId){
+  if(existingId){
+    await db.collection('heroImages').doc(existingId).set(heroImage, { merge: true });
+    return existingId;
+  } else {
+    const ref = await db.collection('heroImages').add(heroImage);
+    return ref.id;
+  }
+}
+async function deleteHeroImageFromDB(id){
+  await db.collection('heroImages').doc(id).delete();
+}
 // ---------- PAGE CONTENT HELPERS (editable Home/About/etc. text) ----------
 // Stored in Firestore collection "pages", one document per page (e.g. "home").
 // Each field on the document maps to an element with id="cms-{page}-{field}"

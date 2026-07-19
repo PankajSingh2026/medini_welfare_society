@@ -77,6 +77,7 @@
       <button class="tab-btn" data-tab="noticesTab">Notices</button>
       <button class="tab-btn" data-tab="videosTab">Videos</button>
       <button class="tab-btn" data-tab="photosTab">Photos</button>
+      <button class="tab-btn" data-tab="heroImagesTab">Hero Images</button>
       <button class="tab-btn" data-tab="pagesTab">Page Content</button>
     </div>
     <!-- ===== TAB: BLOG POSTS ===== -->
@@ -279,6 +280,33 @@
       </div>
     </div>
     </div>
+    <!-- ===== TAB: HERO IMAGES ===== -->
+    <div class="tab-panel" id="heroImagesTab">
+    <p class="muted" style="max-width:60ch;margin-bottom:20px;">Upload as many images as you like — they'll rotate on the home page's top banner, each shown full-size in the same fixed frame (no stretching or distortion, images are cropped to fit).</p>
+    <div class="grid-2" style="align-items:flex-start;">
+      <!-- Hero image list -->
+      <div>
+        <h3>Existing hero images</h3>
+        <button class="btn btn-primary" id="newHeroImageBtn" style="margin-bottom:18px;">+ New hero image</button>
+        <div id="heroImagesList"><p class="muted">Loading…</p></div>
+      </div>
+      <!-- Editor -->
+      <div>
+        <h3 id="heroImageEditorTitle">New hero image</h3>
+        <form class="box" id="heroImageForm">
+          <div><label for="hiTitle">Label (used as image alt text, not shown on the page)</label><input id="hiTitle" required></div>
+          <div><label for="hiImageUrl">Image URL</label><input id="hiImageUrl" placeholder="images/hero-2.jpg or https://..." required></div>
+          <img id="hiImagePreview" style="display:none;margin-top:-8px;margin-bottom:14px;border-radius:8px;max-width:220px;aspect-ratio:4/3;object-fit:cover;">
+          <div><label for="hiOrder">Order (lower shows first — leave blank to default to 0)</label><input id="hiOrder" type="number" step="1" placeholder="0"></div>
+          <div class="flex-gap">
+            <button type="submit" class="btn btn-primary">Save hero image</button>
+            <button type="button" class="btn btn-outline" id="cancelHeroImageEditBtn">Clear / New</button>
+          </div>
+          <p class="form-status" id="heroImageStatus"></p>
+        </form>
+      </div>
+    </div>
+    </div>
     <!-- ===== TAB: PAGE CONTENT ===== -->
     <div class="tab-panel" id="pagesTab">
       <p class="muted" style="max-width:60ch;">Edit the text shown on key site pages. Changes here update the live page immediately — no need to touch any HTML files.</p>
@@ -331,6 +359,7 @@ onAdminAuthChange(user => {
     refreshNoticesList();
     refreshVideosList();
     refreshPhotosList();
+    refreshHeroImagesList();
   } else {
     loginShell.style.display = 'flex';
     adminShell.style.display = 'none';
@@ -911,6 +940,92 @@ photoForm.addEventListener('submit', async (e) => {
   } catch(err){
     photoStatus.style.color = '#c0392b';
     photoStatus.textContent = 'Could not save: ' + (err.message || err) + '. If this says "permission" or "insufficient permissions", your Firestore rules need a rule for the photos collection — see README.';
+  }
+});
+// ---------- HERO IMAGE EDITOR ----------
+const heroImageForm = document.getElementById('heroImageForm');
+const heroImagesList = document.getElementById('heroImagesList');
+const heroImageEditorTitle = document.getElementById('heroImageEditorTitle');
+const heroImageStatus = document.getElementById('heroImageStatus');
+let editingHeroImageId = null;
+document.getElementById('hiImageUrl').addEventListener('input', (e) => {
+  const url = e.target.value.trim();
+  const img = document.getElementById('hiImagePreview');
+  if(url){ img.src = url; img.style.display = 'block'; }
+  else { img.style.display = 'none'; }
+});
+function resetHeroImageForm(){
+  editingHeroImageId = null;
+  heroImageEditorTitle.textContent = 'New hero image';
+  heroImageForm.reset();
+  document.getElementById('hiImagePreview').style.display = 'none';
+  heroImageStatus.textContent = '';
+}
+document.getElementById('newHeroImageBtn').addEventListener('click', resetHeroImageForm);
+document.getElementById('cancelHeroImageEditBtn').addEventListener('click', resetHeroImageForm);
+async function refreshHeroImagesList(){
+  heroImagesList.innerHTML = '<p class="muted">Loading…</p>';
+  try{
+    const images = await fetchHeroImagesFromDB();
+    if(images.length === 0){
+      heroImagesList.innerHTML = '<p class="muted">No hero images yet — the home page is showing the default images/hero.jpg.</p>';
+      return;
+    }
+    heroImagesList.innerHTML = images.map(h => `
+      <div class="post-row">
+        <div>
+          <strong>${h.title}</strong><br>
+          <span class="meta">Order: ${h.order ?? 0}</span>
+        </div>
+        <div class="flex-gap">
+          <button class="btn btn-outline" style="padding:6px 14px;font-size:.85rem;" data-edit="${h.id}">Edit</button>
+          <button class="btn btn-outline" style="padding:6px 14px;font-size:.85rem;color:#c0392b;border-color:#c0392b;" data-del="${h.id}">Delete</button>
+        </div>
+      </div>
+    `).join('');
+    heroImagesList.querySelectorAll('[data-edit]').forEach(btn => {
+      btn.addEventListener('click', () => loadHeroImageIntoForm(images.find(h => h.id === btn.dataset.edit)));
+    });
+    heroImagesList.querySelectorAll('[data-del]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if(confirm('Delete this hero image? This cannot be undone.')){
+          await deleteHeroImageFromDB(btn.dataset.del);
+          refreshHeroImagesList();
+        }
+      });
+    });
+  } catch(err){
+    heroImagesList.innerHTML = '<p class="muted">Could not load hero images: ' + (err.message || err) + '</p>';
+  }
+}
+function loadHeroImageIntoForm(h){
+  editingHeroImageId = h.id;
+  heroImageEditorTitle.textContent = 'Editing: ' + h.title;
+  document.getElementById('hiTitle').value = h.title || '';
+  document.getElementById('hiImageUrl').value = h.imageUrl || '';
+  document.getElementById('hiOrder').value = h.order ?? '';
+  const img = document.getElementById('hiImagePreview');
+  if(h.imageUrl){ img.src = h.imageUrl; img.style.display = 'block'; }
+  else { img.style.display = 'none'; }
+  window.scrollTo({top: 0, behavior:'smooth'});
+}
+heroImageForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  heroImageStatus.style.color = 'var(--leaf)';
+  heroImageStatus.textContent = 'Saving…';
+  const heroImage = {
+    title: document.getElementById('hiTitle').value.trim(),
+    imageUrl: document.getElementById('hiImageUrl').value.trim(),
+    order: document.getElementById('hiOrder').value.trim() === '' ? 0 : Number(document.getElementById('hiOrder').value)
+  };
+  try{
+    await saveHeroImageToDB(heroImage, editingHeroImageId);
+    heroImageStatus.textContent = 'Saved.';
+    resetHeroImageForm();
+    refreshHeroImagesList();
+  } catch(err){
+    heroImageStatus.style.color = '#c0392b';
+    heroImageStatus.textContent = 'Could not save: ' + (err.message || err) + '. If this says "permission" or "insufficient permissions", your Firestore rules need a rule for the heroImages collection — see README.';
   }
 });
 // ---------- PAGE CONTENT EDITOR ----------

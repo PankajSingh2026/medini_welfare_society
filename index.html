@@ -36,13 +36,12 @@
         <a href="initiatives.html" class="btn btn-outline" data-i18n="home.seeWork">See Our Work</a>
       </div>
     </div>
-    <div class="hero-art">
-      <img src="images/hero.jpg" alt="Children at a Medini Welfare Society learning center">
-      <div class="hero-stat-chip">
-        <div><b>1,400+</b><span data-i18n="home.stat1Label">Children in education programs</span></div>
-        <div><b>12</b><span data-i18n="home.stat2Label">Active learning centers</span></div>
-        <div><b>11 yrs</b><span data-i18n="home.stat3Label">Working on the ground</span></div>
-      </div>
+    <!-- Two stacked images crossfade in place — same fixed frame (aspect-ratio
+         4:3, set in css/style.css .hero-art) no matter how many images an
+         admin has uploaded under Admin → Hero Images. No overlay box anymore. -->
+    <div class="hero-art" id="heroArt">
+      <img src="images/hero.jpg" alt="Children at a Medini Welfare Society learning center" class="hero-img active" id="heroImgA">
+      <img src="" alt="" class="hero-img" id="heroImgB">
     </div>
   </div>
 </section>
@@ -184,6 +183,40 @@
 <script>
   mountChrome('home');
   applyPageContent('home'); // overrides text above with anything saved via admin.html → Page Content
+
+  // ---------- HERO IMAGE SLIDESHOW ----------
+  // Admin → Hero Images lets you upload any number of images; they rotate
+  // through here with a soft crossfade, always inside the exact same fixed
+  // frame (.hero-art, aspect-ratio 4:3 in css/style.css) — the frame size
+  // never changes, only which photo is showing. Falls back to the single
+  // static images/hero.jpg if nothing's been uploaded yet or Firestore is
+  // unreachable, so the hero never breaks.
+  let heroSlideIntervalId = null;
+  function startHeroSlideshow(images){
+    const urls = (images && images.length > 0) ? images : ['images/hero.jpg'];
+    const imgA = document.getElementById('heroImgA');
+    const imgB = document.getElementById('heroImgB');
+    if(!imgA || !imgB) return;
+    if(heroSlideIntervalId) clearInterval(heroSlideIntervalId);
+    imgA.src = urls[0];
+    imgA.classList.add('active');
+    imgB.classList.remove('active');
+    if(urls.length <= 1) return; // only one image — nothing to cycle through
+    let index = 0;
+    let showingA = true;
+    heroSlideIntervalId = setInterval(() => {
+      index = (index + 1) % urls.length;
+      const nextImg = showingA ? imgB : imgA;
+      const curImg = showingA ? imgA : imgB;
+      nextImg.src = urls[index];
+      nextImg.classList.add('active');
+      curImg.classList.remove('active');
+      showingA = !showingA;
+    }, 4000);
+  }
+  fetchHeroImagesFromDB()
+    .then(images => startHeroSlideshow(images.map(i => i.imageUrl).filter(Boolean)))
+    .catch(()=>{ startHeroSlideshow(null); });
 
   let currentFeaturedInitiatives = null;
   let currentLatestPosts = null;
