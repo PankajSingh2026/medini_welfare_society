@@ -81,21 +81,33 @@ you never have to write backend code or handle card data.
 
 ## Connecting the Contact / Volunteer forms
 
-Easiest no-backend option: **Formspree** (formspree.io) or **Web3Forms**.
-Sign up free, get a form endpoint URL, then in `contact.html` and
-`volunteer.html` change:
+Both forms are wired up to **Formspree** (formspree.io) already — no
+backend of our own needed. Submissions POST in the background via
+`fetch()` (see `wireForm()` in `js/site.js`), so the page never redirects
+and visitors still see the site's own inline "Thank you" message instead
+of Formspree's generic one.
+
+The endpoint is passed as the 3rd argument where each form is wired up:
 
 ```html
-<form class="box" id="contactForm">
-```
-to:
-```html
-<form class="box" id="contactForm" action="https://formspree.io/f/YOUR-ID" method="POST">
+<!-- contact.html -->
+wireForm('contactForm', 'cStatus', 'https://formspree.io/f/xkodbwlp');
+<!-- volunteer.html -->
+wireForm('volunteerForm', 'vStatus', 'https://formspree.io/f/xkodbwlp');
 ```
 
-and remove the `e.preventDefault()` line inside `wireForm()` in
-`js/site.js` for that form (or just let Formspree handle the redirect —
-they let you set a "thank you" redirect page in their dashboard).
+Both currently point at the same Formspree form, so Contact and Volunteer
+submissions land in the same inbox. To split them, create a second form
+in the Formspree dashboard (Integration tab → "Your form's endpoint is:")
+and swap its URL into the `volunteerForm` line above.
+
+If you ever want to disable sending again (e.g. while testing), just
+remove the 3rd argument from the `wireForm(...)` call — with no endpoint,
+the form shows the confirmation message locally without sending anything.
+
+Every field that should be sent needs a `name` attribute (not just an
+`id`) — that's what Formspree actually reads. Both forms already have
+these set for every field.
 
 If you'd rather have a real backend (e.g. to store submissions in a
 database and trigger emails yourself), that needs a small server — happy
