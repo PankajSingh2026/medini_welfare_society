@@ -253,7 +253,11 @@
       <!-- Photo list -->
       <div>
         <h3>Existing photos</h3>
-        <button class="btn btn-primary" id="newPhotoBtn" style="margin-bottom:18px;">+ New photo</button>
+        <div class="flex-gap" style="margin-bottom:18px;">
+          <button class="btn btn-primary" id="newPhotoBtn">+ New photo</button>
+          <button class="btn btn-outline" id="importGalleryPhotosBtn">Import existing 6 gallery photos</button>
+        </div>
+        <p class="form-note" id="importGalleryPhotosStatus" style="margin-bottom:10px;"></p>
         <div id="photosList"><p class="muted">Loading…</p></div>
       </div>
       <!-- Editor -->
@@ -944,6 +948,41 @@ photoForm.addEventListener('submit', async (e) => {
   } catch(err){
     photoStatus.style.color = '#c0392b';
     photoStatus.textContent = 'Could not save: ' + (err.message || err) + '. If this says "permission" or "insufficient permissions", your Firestore rules need a rule for the photos collection — see README.';
+  }
+});
+// ---------- ONE-TIME IMPORT of the original 6 gallery.html photos ----------
+// Before the Photos admin tab existed, gallery.html just hardcoded 6 images
+// (images/gallery-1.jpg … gallery-6.jpg) with no titles, dates or way to
+// edit/delete them from here. This seeds those same 6 images into
+// Firestore's "photos" collection with placeholder titles/dates you can
+// then edit — same idea as the blog posts / initiatives / hero.jpg imports.
+// Safe to click more than once — it skips any image URL already imported.
+document.getElementById('importGalleryPhotosBtn').addEventListener('click', async () => {
+  const status = document.getElementById('importGalleryPhotosStatus');
+  status.style.color = '';
+  status.textContent = 'Importing…';
+  try{
+    const existing = await fetchPhotosFromDB();
+    const existingUrls = new Set(existing.map(p => p.imageUrl));
+    const today = new Date();
+    let added = 0;
+    for(let i = 1; i <= 6; i++){
+      const url = `images/gallery-${i}.jpg`;
+      if(existingUrls.has(url)) continue;
+      const d = new Date(today);
+      d.setDate(d.getDate() - (i - 1)); // spread dates out so import order is preserved in the list (newest first)
+      const dateStr = d.toISOString().slice(0, 10);
+      await savePhotoToDB({ title: `Gallery photo ${i}`, imageUrl: url, date: dateStr, description: '' }, null);
+      added++;
+    }
+    status.style.color = 'var(--leaf)';
+    status.textContent = added > 0
+      ? ('Imported ' + added + ' photo(s) — edit each to add a real title and description.')
+      : 'Everything was already imported — nothing new to add.';
+    refreshPhotosList();
+  } catch(err){
+    status.style.color = '#c0392b';
+    status.textContent = 'Import failed: ' + (err.message || err) + '. Likely a Firestore permissions issue — see README.';
   }
 });
 // ---------- HERO IMAGE EDITOR ----------
