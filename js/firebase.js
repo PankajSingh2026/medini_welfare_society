@@ -124,6 +124,25 @@ async function saveVideoToDB(video, existingId){
 async function deleteVideoFromDB(id){
   await db.collection('videos').doc(id).delete();
 }
+// ---------- PHOTO HELPERS (Firestore) ----------
+// Photo gallery images live in a Firestore collection called "photos".
+// Each document: { title, imageUrl, date, description }
+async function fetchPhotosFromDB(){
+  const snap = await db.collection('photos').orderBy('date', 'desc').get();
+  return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+async function savePhotoToDB(photo, existingId){
+  if(existingId){
+    await db.collection('photos').doc(existingId).set(photo, { merge: true });
+    return existingId;
+  } else {
+    const ref = await db.collection('photos').add(photo);
+    return ref.id;
+  }
+}
+async function deletePhotoFromDB(id){
+  await db.collection('photos').doc(id).delete();
+}
 // ---------- PAGE CONTENT HELPERS (editable Home/About/etc. text) ----------
 // Stored in Firestore collection "pages", one document per page (e.g. "home").
 // Each field on the document maps to an element with id="cms-{page}-{field}"
