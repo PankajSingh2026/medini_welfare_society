@@ -28,6 +28,17 @@ function headerHTML(active){
 }
 
 function footerHTML(){
+  // ---- SOCIAL LINKS ----
+  // Replace these four placeholder URLs with your real profile links (and
+  // swap the WhatsApp number for your actual one, digits only, country code
+  // first — no +, spaces or leading 00). This is the only place these links
+  // live on the site — social icons intentionally do not appear in the header/nav.
+  const SOCIAL_LINKS = {
+    facebook: 'https://facebook.com/mediniwelfaresociety',
+    instagram: 'https://instagram.com/mediniwelfaresociety',
+    x: 'https://x.com/mediniwelfare',
+    whatsapp: 'https://wa.me/910000000000'
+  };
   return `
   <footer class="site-footer">
     <div class="wrap">
@@ -38,6 +49,20 @@ function footerHTML(){
             A registered non-profit working for social upliftment through education, health and livelihood programs.
           </p>
           <p style="color:#9aa0b4;font-size:.8rem;" data-i18n="footer.regNote">Registration No. XXXXXXXXX &middot; 80G &amp; 12A registered</p>
+          <div class="footer-social">
+            <a href="${SOCIAL_LINKS.facebook}" target="_blank" rel="noopener" aria-label="Facebook" title="Facebook">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M22 12.06C22 6.51 17.52 2 12 2S2 6.51 2 12.06c0 5 3.66 9.14 8.44 9.94v-7.03H7.9v-2.91h2.54V9.86c0-2.5 1.49-3.89 3.78-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.87h2.78l-.44 2.91h-2.34V22c4.78-.8 8.44-4.94 8.44-9.94z"/></svg>
+            </a>
+            <a href="${SOCIAL_LINKS.instagram}" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none"/></svg>
+            </a>
+            <a href="${SOCIAL_LINKS.x}" target="_blank" rel="noopener" aria-label="X (formerly Twitter)" title="X">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M18.244 2H21.5l-7.5 8.57L22.75 22h-6.94l-5.43-6.98L4.14 22H1l8.03-9.17L1.5 2h7.1l4.9 6.39L18.24 2Zm-1.22 18h1.9L7.06 4H5.02l11.99 16Z"/></svg>
+            </a>
+            <a href="${SOCIAL_LINKS.whatsapp}" target="_blank" rel="noopener" aria-label="WhatsApp" title="WhatsApp">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12.02 2C6.5 2 2 6.48 2 12c0 1.85.5 3.6 1.44 5.13L2 22l4.99-1.3A9.96 9.96 0 0 0 12.02 22C17.55 22 22 17.52 22 12S17.55 2 12.02 2Zm4.9 12.99c-.24.68-1.37 1.3-1.94 1.38-.51.08-1.15.11-1.86-.12a11.5 11.5 0 0 1-1.69-.62c-2.97-1.28-4.91-4.27-5.06-4.47-.15-.2-1.21-1.61-1.21-3.07 0-1.46.77-2.18 1.04-2.48.27-.3.59-.37.79-.37.19 0 .39 0 .56.01.17 0 .41-.07.65.5.25.58.83 2 .9 2.15.07.15.12.32.02.52-.09.2-.14.33-.29.5-.15.16-.31.37-.44.5-.15.15-.3.3-.13.6.16.29.74 1.24 1.6 2 1.1.98 2.03 1.28 2.32 1.43.29.15.46.13.63-.07.17-.19.72-.82.92-1.12.19-.29.39-.24.65-.14.26.09 1.67.78 1.96.93.29.15.48.22.55.35.07.12.07.7-.17 1.38z"/></svg>
+            </a>
+          </div>
         </div>
         <div>
           <h4 data-i18n="footer.explore">Explore</h4>
