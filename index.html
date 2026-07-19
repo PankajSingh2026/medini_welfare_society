@@ -150,6 +150,14 @@
   </div>
 </section>
 
+<!-- Full-size photo lightbox — thumbnails on the card are cropped to a
+     video-style 16:9 box, but clicking one opens the real uploaded image
+     here at its own natural width/height (never cropped or upscaled). -->
+<div class="photo-lightbox-overlay" id="photoLightbox" style="display:none;">
+  <button type="button" class="photo-lightbox-close" id="photoLightboxClose" aria-label="Close">✕</button>
+  <img id="photoLightboxImg" src="" alt="">
+</div>
+
 <!-- ============ CTA ============ -->
 <section class="section">
   <div class="wrap">
@@ -291,16 +299,24 @@
     const track = document.getElementById('photoCarouselTrack');
     if(!photos || photos.length === 0){ section.style.display = 'none'; return; }
     const sorted = photos.slice().sort((a,b) => new Date(b.date) - new Date(a.date));
-    const slideHtml = (p) => `
+    const slideHtml = (p) => {
+      const title = t(p, 'title');
+      const safeSrc = (p.imageUrl || '').replace(/"/g, '&quot;');
+      const safeTitle = (title || '').replace(/"/g, '&quot;');
+      return `
       <div class="photo-slide">
-        <img src="${p.imageUrl}" alt="${t(p, 'title')}" loading="lazy">
+        <div class="photo-thumb-wrap" role="button" tabindex="0" aria-label="View full-size photo" data-full-src="${safeSrc}" data-title="${safeTitle}">
+          <img src="${p.imageUrl}" alt="${title}" loading="lazy">
+          <span class="photo-expand" aria-hidden="true">⤢</span>
+        </div>
         <div class="photo-caption">
-          <h3>${t(p, 'title')}</h3>
+          <h3>${title}</h3>
           <p class="muted">${fmtDate(p.date)}</p>
           ${t(p, 'description') ? `<p>${t(p, 'description')}</p>` : ''}
         </div>
       </div>
     `;
+    };
     const slidesHtml = sorted.map(slideHtml).join('');
     track.innerHTML = sorted.length > 1 ? slidesHtml + slideHtml(sorted[0]) : slidesHtml;
     section.style.display = '';
@@ -333,6 +349,42 @@
   fetchPhotosFromDB()
     .then(renderPhotos)
     .catch(()=>{ const el = document.getElementById('photosSection'); if(el) el.style.display = 'none'; });
+
+  // ---------- FULL-SIZE PHOTO LIGHTBOX ----------
+  // The carousel thumbnail is cropped to a fixed 16:9 box (same shape as the
+  // video cards above), so it's consistent no matter what shape the admin's
+  // original upload is. Clicking it opens the actual uploaded file here,
+  // shown at its own natural width/height (object-fit isn't applied) — this
+  // is the "real" picture, just capped so it fits on screen.
+  const photoCarouselTrack = document.getElementById('photoCarouselTrack');
+  const photoLightbox = document.getElementById('photoLightbox');
+  const photoLightboxImg = document.getElementById('photoLightboxImg');
+  function openPhotoLightbox(src, alt){
+    if(!src) return;
+    photoLightboxImg.src = src;
+    photoLightboxImg.alt = alt || '';
+    photoLightbox.style.display = 'flex';
+  }
+  function closePhotoLightbox(){
+    photoLightbox.style.display = 'none';
+    photoLightboxImg.src = ''; // stop holding the full-res image in memory once closed
+  }
+  document.getElementById('photoLightboxClose').addEventListener('click', closePhotoLightbox);
+  photoLightbox.addEventListener('click', (e) => { if(e.target === photoLightbox) closePhotoLightbox(); });
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closePhotoLightbox(); });
+  // Event delegation on the (persistent) track container — works after every
+  // re-render (initial load, language switch) without re-wiring anything.
+  photoCarouselTrack.addEventListener('click', (e) => {
+    const thumbWrap = e.target.closest('.photo-thumb-wrap');
+    if(thumbWrap) openPhotoLightbox(thumbWrap.dataset.fullSrc, thumbWrap.dataset.title);
+  });
+  photoCarouselTrack.addEventListener('keydown', (e) => {
+    if(e.key !== 'Enter' && e.key !== ' ') return;
+    const thumbWrap = e.target.closest('.photo-thumb-wrap');
+    if(!thumbWrap) return;
+    e.preventDefault();
+    openPhotoLightbox(thumbWrap.dataset.fullSrc, thumbWrap.dataset.title);
+  });
 
   // Top 2 notices, shown as a right-to-left scrolling strip below the nav bar.
   function renderNoticeTicker(notices){
