@@ -81,8 +81,8 @@ function footerHTML(){
         </div>
         <div>
           <h4 data-i18n="footer.contact">Contact</h4>
-          <a href="mailto:contact@mediniwelfare.org">contact@mediniwelfare.org</a>
-          <a href="tel:+910000000000">+91 00000 00000</a>
+          <a href="mailto:mediniwelfaresociety@gmail.com">mediniwelfaresociety@gmail.com</a>
+          <a href="tel:+919572104399">+91 9572104399</a>
           <a href="contact.html" data-i18n="footer.contactFormArrow">Contact form &rarr;</a>
         </div>
       </div>
