@@ -81,8 +81,8 @@ function footerHTML(){
         </div>
         <div>
           <h4 data-i18n="footer.contact">Contact</h4>
-          <a href="mailto:mediniwelfaresociety@gmail.com">mediniwelfaresociety@gmail.com</a>
-          <a href="tel:+919572104399">+919572104399</a>
+          <a href="mailto:contact@mediniwelfare.org">contact@mediniwelfare.org</a>
+          <a href="tel:+910000000000">+91 00000 00000</a>
           <a href="contact.html" data-i18n="footer.contactFormArrow">Contact form &rarr;</a>
         </div>
       </div>
@@ -118,17 +118,51 @@ async function loadJSON(path){
 }
 
 // Simple contact/volunteer form handler.
-// NOTE: this currently just shows a confirmation message — see README
-// for how to wire this up to actually receive submissions (Formspree, etc.)
-function wireForm(formId, statusId){
+// Pass a Formspree (or similar) endpoint as the 3rd argument to actually
+// send submissions there via a background fetch — the page never
+// redirects, so the existing inline "Thank you" message still shows.
+// Leave the endpoint out (or leave it as the "YOUR-..." placeholder in
+// contact.html / volunteer.html) and the form just shows the confirmation
+// locally without sending anything anywhere, same as before.
+function wireForm(formId, statusId, endpoint){
   const form = document.getElementById(formId);
   const status = document.getElementById(statusId);
   if(!form) return;
-  form.addEventListener('submit', (e) => {
+  const submitBtn = form.querySelector('button[type="submit"]');
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    status.textContent = "Thank you — we've received your message and will be in touch shortly.";
-    status.style.color = 'var(--leaf)';
-    form.reset();
+    const notConfigured = !endpoint || endpoint.indexOf('YOUR-') !== -1;
+    if(notConfigured){
+      status.style.color = 'var(--leaf)';
+      status.textContent = "Thank you — we've received your message and will be in touch shortly.";
+      form.reset();
+      return;
+    }
+    status.style.color = '';
+    status.textContent = 'Sending…';
+    if(submitBtn) submitBtn.disabled = true;
+    try{
+      // Accept: application/json tells Formspree to respond with JSON
+      // instead of redirecting to their own hosted "thank you" page.
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' },
+        body: new FormData(form)
+      });
+      if(res.ok){
+        status.style.color = 'var(--leaf)';
+        status.textContent = "Thank you — we've received your message and will be in touch shortly.";
+        form.reset();
+      } else {
+        status.style.color = '#c0392b';
+        status.textContent = 'Something went wrong sending your message — please try again, or email us directly.';
+      }
+    } catch(err){
+      status.style.color = '#c0392b';
+      status.textContent = 'Something went wrong sending your message — please try again, or email us directly.';
+    } finally {
+      if(submitBtn) submitBtn.disabled = false;
+    }
   });
 }
 let translationsCache = null;
