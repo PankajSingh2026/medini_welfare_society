@@ -198,7 +198,11 @@
   // start with no transition, the same trick used by those other carousels.
   // Falls back to the single static images/hero.jpg if nothing's been
   // uploaded yet or Firestore is unreachable, so the hero never breaks.
+  // Pauses while the cursor is anywhere over the hero image frame (see the
+  // mouseenter/mouseleave listeners below) and resumes from the same spot
+  // once it leaves — it doesn't restart the timer, just skips ticks while paused.
   let heroSlideIntervalId = null;
+  let heroSlidePaused = false;
   function startHeroSlideshow(images){
     const urls = (images && images.length > 0) ? images : ['images/hero.jpg'];
     const track = document.getElementById('heroSlideshowTrack');
@@ -212,6 +216,7 @@
     if(urls.length <= 1) return; // only one image — nothing to cycle through
     let index = 0;
     heroSlideIntervalId = setInterval(() => {
+      if(heroSlidePaused) return;
       index++;
       track.style.transition = 'transform .6s cubic-bezier(.4,0,.2,1)';
       track.style.transform = `translateX(-${index * 100}%)`;
@@ -228,6 +233,13 @@
   fetchHeroImagesFromDB()
     .then(images => startHeroSlideshow(images.map(i => i.imageUrl).filter(Boolean)))
     .catch(()=>{ startHeroSlideshow(null); });
+  // Wired once, independent of whether the slideshow has loaded yet — cursor
+  // anywhere over the hero image frame pauses the auto-advance.
+  const heroArt = document.getElementById('heroArt');
+  if(heroArt){
+    heroArt.addEventListener('mouseenter', () => { heroSlidePaused = true; });
+    heroArt.addEventListener('mouseleave', () => { heroSlidePaused = false; });
+  }
 
   let currentFeaturedInitiatives = null;
   let currentLatestPosts = null;
