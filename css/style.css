@@ -381,6 +381,11 @@ p{margin:0 0 1em;}
   flex:0 0 100%;
   max-width:none;
   box-sizing:border-box;
+  /* Flex items default to min-width:auto, which means their minimum size
+     is their content's natural unwrapped width — that's what was pushing
+     the quote text wider than the slide instead of wrapping. min-width:0
+     lets the browser wrap it normally at the slide's actual width. */
+  min-width:0;
 }
 
 /* ---------- PHOTO GALLERY CAROUSEL ---------- */
