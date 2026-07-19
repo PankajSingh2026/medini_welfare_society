@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Contact — Medini Welfare Society</title>
 <meta name="description" content="Get in touch with Medini Welfare Society about our programs, partnerships or donations.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -22,24 +25,23 @@
   <div class="wrap grid-2">
     <div>
       <h2 data-i18n="contact.visitHeading">Visit or write to us</h2>
-      <p><strong data-i18n="contact.addressLabel">Address</strong><br>Medini Welfare Society<br>Panchwati Bhawan ,New Area Jelhata Kuchharhi Compound, Sarvodaya Nagar , Medininagar <br>Jharkhand, India 822101</p>
-      <p><strong data-i18n="contact.emailLabel">Email</strong><br><a href="mailto:mediniwelfaresociety@gmail.com" style="text-decoration:underline;"></a>mediniwelfaresociety@gmail.com</p>
+      <p><strong data-i18n="contact.addressLabel">Address</strong><br>Medini Welfare Society<br>Panchwati Bhawan, New Area Jelhata Kuchharhi Compound, Sarvodaya Nagar, Medininagar<br>Jharkhand, India 822101</p>
+      <p><strong data-i18n="contact.emailLabel">Email</strong><br><a href="mailto:mediniwelfaresociety@gmail.com" style="text-decoration:underline;">mediniwelfaresociety@gmail.com</a></p>
       <p><strong data-i18n="contact.phoneLabel">Phone</strong><br><a href="tel:+919572104399" style="text-decoration:underline;">+91 9572104399</a></p>
       <div style="border-radius:16px;overflow:hidden;margin-top:20px;border:1px solid var(--rule);">
-       <!-- <iframe src="https://maps.google.com/maps?q=Mumbai&t=&z=11&ie=UTF8&iwloc=&output=embed" width="100%" height="280" style="border:0;" loading="lazy"></iframe>
+       <!-- <iframe src="https://maps.google.com/maps?q=Medininagar,Jharkhand&t=&z=13&ie=UTF8&iwloc=&output=embed" width="100%" height="280" style="border:0;" loading="lazy"></iframe>
       </div> -->
       <p class="form-note" style="margin-top:10px;" data-i18n="contact.mapNote">Replace the map query above with your actual office address.</p>
     </div>
-    <form class="box" id="contactForm" action="https://formspree.io/f/xkodbwlp" method="POST">
+    <form class="box" id="contactForm">
       <div class="form-row">
-        <div><label for="cName" data-i18n="contact.nameLabel">Name</label><input id="cName" required></div>
-        <div><label for="cEmail" data-i18n="contact.emailLabel">Email</label><input id="cEmail" type="email" required></div>
+        <div><label for="cName" data-i18n="contact.nameLabel">Name</label><input id="cName" name="name" required></div>
+        <div><label for="cEmail" data-i18n="contact.emailLabel">Email</label><input id="cEmail" name="email" type="email" required></div>
       </div>
-      <div><label for="cSubject" data-i18n="contact.subjectLabel">Subject</label><input id="cSubject"></div>
-      <div><label for="cMsg" data-i18n="contact.messageLabel">Message</label><textarea id="cMsg" rows="5" required></textarea></div>
+      <div><label for="cSubject" data-i18n="contact.subjectLabel">Subject</label><input id="cSubject" name="subject"></div>
+      <div><label for="cMsg" data-i18n="contact.messageLabel">Message</label><textarea id="cMsg" name="message" rows="5" required></textarea></div>
       <button type="submit" class="btn btn-primary" data-i18n="contact.sendBtn">Send message</button>
       <p class="form-status" id="cStatus"></p>
-      <p class="form-note" data-i18n="contact.formReadmeNote">See README for instructions on connecting this form to receive real submissions.</p>
     </form>
   </div>
 </section>
@@ -48,7 +50,7 @@
 <script src="js/site.js"></script>
 <script>
   mountChrome('contact');
-  wireForm('contactForm', 'cStatus');
+  wireForm('contactForm', 'cStatus', 'https://formspree.io/f/xkodbwlp');
 </script>
 </body>
 </html>
