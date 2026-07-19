@@ -368,29 +368,32 @@ p{margin:0 0 1em;}
 }
 
 /* ---------- PHOTO GALLERY CAROUSEL ---------- */
-/* Discrete right-to-left slide every 3s (see JS), same mechanic as the
-   quote carousel above — not a continuous marquee like the video ticker. */
-.photo-carousel-viewport{overflow:hidden;border-radius:16px;}
+/* Cards are the exact same width/shape as the Society Video cards below —
+   16:9 thumbnail on top, title/date/description underneath — so the two
+   sections read as one consistent system. The row steps left by one card
+   every 3s (see JS), a discrete block-move rather than a continuous
+   marquee like the video ticker's CSS-animation scroll. */
+.photo-carousel-viewport{
+  overflow:hidden;
+  margin-top:26px;
+  -webkit-mask-image:linear-gradient(to right, transparent, #000 40px, #000 calc(100% - 40px), transparent);
+  mask-image:linear-gradient(to right, transparent, #000 40px, #000 calc(100% - 40px), transparent);
+}
 .photo-carousel-track{
-  display:flex;
+  display:flex;gap:22px;
+  padding:4px 24px 10px;
   transition:transform .6s cubic-bezier(.4,0,.2,1);
 }
-.photo-slide{
-  flex:0 0 100%;
-  max-width:none;
-  box-sizing:border-box;
-  display:grid;
-  grid-template-columns:1.3fr 1fr;
-  gap:30px;
-  align-items:center;
+.photo-card{
+  background:var(--white);border:1px solid var(--rule);border-radius:16px;
+  width:300px;flex-shrink:0;overflow:hidden;
+  display:flex;flex-direction:column;
 }
-/* Thumbnail box matches the Society Video cards' 16:9 shape exactly, so
-   photos and videos read as one consistent system. This is a cropped
-   preview only — see the lightbox rules below for the real image. */
+/* Thumbnail box matches the Society Video cards' 16:9 shape exactly. This is
+   a cropped preview only — see the lightbox rules below for the real image. */
 .photo-thumb-wrap{
   position:relative;
   aspect-ratio:16/9;
-  border-radius:14px;
   overflow:hidden;
   background:var(--ink);
   cursor:pointer;
@@ -406,11 +409,10 @@ p{margin:0 0 1em;}
   transition:background .2s;
 }
 .photo-thumb-wrap:hover .photo-expand{background:rgba(0,0,0,.85);}
-.photo-caption h3{margin:0 0 8px;}
-.photo-caption p{margin:0 0 6px;}
-@media (max-width:720px){
-  .photo-slide{grid-template-columns:1fr;}
-}
+.photo-card-body{padding:16px 18px;display:flex;flex-direction:column;gap:5px;}
+.photo-card-body h4{margin:0;font-size:1rem;color:var(--ink);font-family:var(--display);font-weight:600;}
+.photo-date{font-family:var(--mono);font-size:.72rem;color:#777;}
+.photo-desc{font-size:.85rem;color:#55534c;margin:4px 0 0;}
 
 /* ---------- PHOTO LIGHTBOX (real, uncropped, full-resolution view) ---------- */
 .photo-lightbox-overlay{
