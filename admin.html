@@ -287,7 +287,11 @@
       <!-- Hero image list -->
       <div>
         <h3>Existing hero images</h3>
-        <button class="btn btn-primary" id="newHeroImageBtn" style="margin-bottom:18px;">+ New hero image</button>
+        <div class="flex-gap" style="margin-bottom:18px;">
+          <button class="btn btn-primary" id="newHeroImageBtn">+ New hero image</button>
+          <button class="btn btn-outline" id="importHeroImageBtn">Import current hero.jpg</button>
+        </div>
+        <p class="form-note" id="importHeroImageStatus" style="margin-bottom:10px;"></p>
         <div id="heroImagesList"><p class="muted">Loading…</p></div>
       </div>
       <!-- Editor -->
@@ -1026,6 +1030,34 @@ heroImageForm.addEventListener('submit', async (e) => {
   } catch(err){
     heroImageStatus.style.color = '#c0392b';
     heroImageStatus.textContent = 'Could not save: ' + (err.message || err) + '. If this says "permission" or "insufficient permissions", your Firestore rules need a rule for the heroImages collection — see README.';
+  }
+});
+// ---------- ONE-TIME IMPORT of the original static hero.jpg ----------
+// Before this feature existed, the home page always showed a single
+// hardcoded images/hero.jpg with no way to edit or remove it from here.
+// This seeds that same image into Firestore's "heroImages" collection so
+// it shows up above to edit/delete/reorder, same idea as the blog posts
+// and initiatives imports. Safe to click more than once — it skips
+// re-adding if that image URL is already in the database.
+document.getElementById('importHeroImageBtn').addEventListener('click', async () => {
+  const status = document.getElementById('importHeroImageStatus');
+  status.style.color = '';
+  status.textContent = 'Importing…';
+  try{
+    const existing = await fetchHeroImagesFromDB();
+    const alreadyImported = existing.some(h => h.imageUrl === 'images/hero.jpg');
+    if(alreadyImported){
+      status.style.color = 'var(--leaf)';
+      status.textContent = 'Already imported — nothing new to add.';
+    } else {
+      await saveHeroImageToDB({ title: 'Original hero image', imageUrl: 'images/hero.jpg', order: 0 }, null);
+      status.style.color = 'var(--leaf)';
+      status.textContent = 'Imported.';
+      refreshHeroImagesList();
+    }
+  } catch(err){
+    status.style.color = '#c0392b';
+    status.textContent = 'Import failed: ' + (err.message || err) + '. Likely a Firestore permissions issue — see README.';
   }
 });
 // ---------- PAGE CONTENT EDITOR ----------
