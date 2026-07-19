@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin — Medini Welfare Society</title>
 <meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap">
 <link rel="stylesheet" href="css/style.css">
 <style>
   .admin-shell{display:none;}
@@ -73,6 +76,7 @@
       <button class="tab-btn" data-tab="initiativesTab">Initiatives</button>
       <button class="tab-btn" data-tab="noticesTab">Notices</button>
       <button class="tab-btn" data-tab="videosTab">Videos</button>
+      <button class="tab-btn" data-tab="photosTab">Photos</button>
       <button class="tab-btn" data-tab="pagesTab">Page Content</button>
     </div>
     <!-- ===== TAB: BLOG POSTS ===== -->
@@ -242,6 +246,39 @@
       </div>
     </div>
     </div>
+    <!-- ===== TAB: PHOTOS ===== -->
+    <div class="tab-panel" id="photosTab">
+    <div class="grid-2" style="align-items:flex-start;">
+      <!-- Photo list -->
+      <div>
+        <h3>Existing photos</h3>
+        <button class="btn btn-primary" id="newPhotoBtn" style="margin-bottom:18px;">+ New photo</button>
+        <div id="photosList"><p class="muted">Loading…</p></div>
+      </div>
+      <!-- Editor -->
+      <div>
+        <h3 id="photoEditorTitle">New photo</h3>
+        <form class="box" id="photoForm">
+          <div><label for="phTitle">Title</label><input id="phTitle" required></div>
+          <div class="form-row">
+            <div><label for="phImageUrl">Image URL</label><input id="phImageUrl" placeholder="images/gallery-7.jpg or https://..." required></div>
+            <div><label for="phDate">Date of post</label><input id="phDate" type="date" required></div>
+          </div>
+          <img id="phImagePreview" style="display:none;margin-top:-8px;margin-bottom:14px;border-radius:8px;max-width:220px;aspect-ratio:16/9;object-fit:cover;">
+          <div><label for="phDescription">Description (optional)</label><textarea id="phDescription" rows="3"></textarea></div>
+          <hr style="margin:24px 0;border:none;border-top:1px solid var(--rule);">
+          <p class="form-note" style="margin-bottom:12px;"><strong>Hindi version (optional)</strong> — leave blank to show the English version to Hindi-language visitors.</p>
+          <div><label for="phTitleHi">Title (Hindi)</label><input id="phTitleHi"></div>
+          <div><label for="phDescriptionHi">Description (Hindi)</label><textarea id="phDescriptionHi" rows="3"></textarea></div>
+          <div class="flex-gap">
+            <button type="submit" class="btn btn-primary">Save photo</button>
+            <button type="button" class="btn btn-outline" id="cancelPhotoEditBtn">Clear / New</button>
+          </div>
+          <p class="form-status" id="photoStatus"></p>
+        </form>
+      </div>
+    </div>
+    </div>
     <!-- ===== TAB: PAGE CONTENT ===== -->
     <div class="tab-panel" id="pagesTab">
       <p class="muted" style="max-width:60ch;">Edit the text shown on key site pages. Changes here update the live page immediately — no need to touch any HTML files.</p>
@@ -293,6 +330,7 @@ onAdminAuthChange(user => {
     refreshInitiativesList();
     refreshNoticesList();
     refreshVideosList();
+    refreshPhotosList();
   } else {
     loginShell.style.display = 'flex';
     adminShell.style.display = 'none';
@@ -780,6 +818,99 @@ videoForm.addEventListener('submit', async (e) => {
   } catch(err){
     videoStatus.style.color = '#c0392b';
     videoStatus.textContent = 'Could not save: ' + (err.message || err) + '. If this says "permission" or "insufficient permissions", your Firestore rules need a rule for the videos collection — see README.';
+  }
+});
+// ---------- PHOTO EDITOR ----------
+const photoForm = document.getElementById('photoForm');
+const photosList = document.getElementById('photosList');
+const photoEditorTitle = document.getElementById('photoEditorTitle');
+const photoStatus = document.getElementById('photoStatus');
+let editingPhotoId = null;
+// Live preview as the admin pastes/edits the image URL.
+document.getElementById('phImageUrl').addEventListener('input', (e) => {
+  const url = e.target.value.trim();
+  const img = document.getElementById('phImagePreview');
+  if(url){ img.src = url; img.style.display = 'block'; }
+  else { img.style.display = 'none'; }
+});
+function resetPhotoForm(){
+  editingPhotoId = null;
+  photoEditorTitle.textContent = 'New photo';
+  photoForm.reset();
+  document.getElementById('phImagePreview').style.display = 'none';
+  photoStatus.textContent = '';
+}
+document.getElementById('newPhotoBtn').addEventListener('click', resetPhotoForm);
+document.getElementById('cancelPhotoEditBtn').addEventListener('click', resetPhotoForm);
+async function refreshPhotosList(){
+  photosList.innerHTML = '<p class="muted">Loading…</p>';
+  try{
+    const photos = await fetchPhotosFromDB();
+    if(photos.length === 0){
+      photosList.innerHTML = '<p class="muted">No photos yet — add your first one.</p>';
+      return;
+    }
+    photosList.innerHTML = photos.map(p => `
+      <div class="post-row">
+        <div>
+          <strong>${p.title}</strong><br>
+          <span class="meta">${p.date || ''}</span>
+        </div>
+        <div class="flex-gap">
+          <button class="btn btn-outline" style="padding:6px 14px;font-size:.85rem;" data-edit="${p.id}">Edit</button>
+          <button class="btn btn-outline" style="padding:6px 14px;font-size:.85rem;color:#c0392b;border-color:#c0392b;" data-del="${p.id}">Delete</button>
+        </div>
+      </div>
+    `).join('');
+    photosList.querySelectorAll('[data-edit]').forEach(btn => {
+      btn.addEventListener('click', () => loadPhotoIntoForm(photos.find(p => p.id === btn.dataset.edit)));
+    });
+    photosList.querySelectorAll('[data-del]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if(confirm('Delete this photo? This cannot be undone.')){
+          await deletePhotoFromDB(btn.dataset.del);
+          refreshPhotosList();
+        }
+      });
+    });
+  } catch(err){
+    photosList.innerHTML = '<p class="muted">Could not load photos: ' + (err.message || err) + '</p>';
+  }
+}
+function loadPhotoIntoForm(p){
+  editingPhotoId = p.id;
+  photoEditorTitle.textContent = 'Editing: ' + p.title;
+  document.getElementById('phTitle').value = p.title || '';
+  document.getElementById('phImageUrl').value = p.imageUrl || '';
+  document.getElementById('phDate').value = p.date || '';
+  document.getElementById('phDescription').value = p.description || '';
+  document.getElementById('phTitleHi').value = p.titleHi || '';
+  document.getElementById('phDescriptionHi').value = p.descriptionHi || '';
+  const img = document.getElementById('phImagePreview');
+  if(p.imageUrl){ img.src = p.imageUrl; img.style.display = 'block'; }
+  else { img.style.display = 'none'; }
+  window.scrollTo({top: 0, behavior:'smooth'});
+}
+photoForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  photoStatus.style.color = 'var(--leaf)';
+  photoStatus.textContent = 'Saving…';
+  const photo = {
+    title: document.getElementById('phTitle').value.trim(),
+    imageUrl: document.getElementById('phImageUrl').value.trim(),
+    date: document.getElementById('phDate').value,
+    description: document.getElementById('phDescription').value.trim(),
+    titleHi: document.getElementById('phTitleHi').value.trim(),
+    descriptionHi: document.getElementById('phDescriptionHi').value.trim()
+  };
+  try{
+    await savePhotoToDB(photo, editingPhotoId);
+    photoStatus.textContent = 'Saved.';
+    resetPhotoForm();
+    refreshPhotosList();
+  } catch(err){
+    photoStatus.style.color = '#c0392b';
+    photoStatus.textContent = 'Could not save: ' + (err.message || err) + '. If this says "permission" or "insufficient permissions", your Firestore rules need a rule for the photos collection — see README.';
   }
 });
 // ---------- PAGE CONTENT EDITOR ----------

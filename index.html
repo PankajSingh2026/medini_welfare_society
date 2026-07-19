@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Medini Welfare Society — Education &amp; Social Upliftment</title>
 <meta name="description" content="Medini Welfare Society is a non-profit working for social upliftment through education, health and livelihood initiatives.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -132,6 +135,21 @@
   </div>
 </section>
 
+<!-- ============ PHOTO GALLERY ============ -->
+<!-- Steps to the next photo every 3s, sliding right-to-left (same discrete
+     block-move mechanic as the quote carousel above) — not a continuous scroll. -->
+<section class="section" id="photosSection" style="display:none;">
+  <div class="wrap">
+    <div class="section-head center">
+      <span class="eyebrow" data-i18n="home.photosEyebrow">Gallery</span>
+      <h2 data-i18n="home.photosHeading">Moments from the field</h2>
+    </div>
+    <div class="photo-carousel-viewport">
+      <div class="photo-carousel-track" id="photoCarouselTrack"></div>
+    </div>
+  </div>
+</section>
+
 <!-- ============ CTA ============ -->
 <section class="section">
   <div class="wrap">
@@ -163,6 +181,8 @@
   let currentLatestPosts = null;
   let currentTickerNotices = null;
   let currentVideos = null;
+  let currentPhotos = null;
+  let photoCarouselIntervalId = null;
 
   // Society videos, shown below as a right-to-left scrolling row of cards.
   // Clicking the thumbnail plays the video inline, right inside the card —
@@ -257,6 +277,62 @@
     e.preventDefault();
     playInline(thumbWrap);
   });
+
+  // ---------- PHOTO GALLERY CAROUSEL ----------
+  // Steps to the next photo every 3s with a right-to-left slide (same
+  // discrete block-move mechanic as the quote carousel below) — not a
+  // continuous scroll like the video ticker above. One real slide per photo,
+  // plus a duplicate of the 1st appended at the end so the track always
+  // moves left; once the duplicate is fully in view we snap back to slide 1
+  // with no transition, so the loop is seamless.
+  function renderPhotos(photos){
+    currentPhotos = photos;
+    const section = document.getElementById('photosSection');
+    const track = document.getElementById('photoCarouselTrack');
+    if(!photos || photos.length === 0){ section.style.display = 'none'; return; }
+    const sorted = photos.slice().sort((a,b) => new Date(b.date) - new Date(a.date));
+    const slideHtml = (p) => `
+      <div class="photo-slide">
+        <img src="${p.imageUrl}" alt="${t(p, 'title')}" loading="lazy">
+        <div class="photo-caption">
+          <h3>${t(p, 'title')}</h3>
+          <p class="muted">${fmtDate(p.date)}</p>
+          ${t(p, 'description') ? `<p>${t(p, 'description')}</p>` : ''}
+        </div>
+      </div>
+    `;
+    const slidesHtml = sorted.map(slideHtml).join('');
+    track.innerHTML = sorted.length > 1 ? slidesHtml + slideHtml(sorted[0]) : slidesHtml;
+    section.style.display = '';
+    initPhotoCarousel(sorted.length);
+  }
+  function initPhotoCarousel(realCount){
+    const track = document.getElementById('photoCarouselTrack');
+    if(!track) return;
+    // Re-renders (e.g. on language switch) can call this again — clear any
+    // previous timer first so intervals don't stack up and speed up the loop.
+    if(photoCarouselIntervalId) clearInterval(photoCarouselIntervalId);
+    track.style.transition = 'none';
+    track.style.transform = 'translateX(0%)';
+    if(realCount <= 1) return; // nothing to cycle through
+    let photoIndex = 0;
+    photoCarouselIntervalId = setInterval(() => {
+      photoIndex++;
+      track.style.transition = 'transform .6s cubic-bezier(.4,0,.2,1)';
+      track.style.transform = `translateX(-${photoIndex * 100}%)`;
+      if(photoIndex === realCount){
+        setTimeout(() => {
+          track.style.transition = 'none';
+          track.offsetHeight; // force reflow so 'none' takes effect before the transform change below
+          photoIndex = 0;
+          track.style.transform = 'translateX(0%)';
+        }, 650);
+      }
+    }, 3000);
+  }
+  fetchPhotosFromDB()
+    .then(renderPhotos)
+    .catch(()=>{ const el = document.getElementById('photosSection'); if(el) el.style.display = 'none'; });
 
   // Top 2 notices, shown as a right-to-left scrolling strip below the nav bar.
   function renderNoticeTicker(notices){
@@ -358,6 +434,7 @@
     if(currentLatestPosts) renderLatestPosts(currentLatestPosts);
     if(currentTickerNotices) renderNoticeTicker(currentTickerNotices);
     if(currentVideos) renderVideos(currentVideos);
+    if(currentPhotos) renderPhotos(currentPhotos);
   });
 </script>
 </body>
