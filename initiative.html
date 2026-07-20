@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Initiative — Medini Welfare Society</title>
 <meta name="description" content="Read about one of Medini Welfare Society's community programs." id="metaDescription">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -36,11 +39,7 @@
       <h1>${t(it, 'title')}</h1>
       <img src="${it.image}" alt="${t(it, 'title')}">
       <p style="font-size:1.1rem;">${t(it, 'summary')}</p>
-      <p>${t(it, 'detail')}</p>
-      <div class="card" style="margin-top:24px;">
-        <span class="num">${tt('initiative.impactLabel') || 'Impact'}</span>
-        <h3>${it.impact}</h3>
-      </div>
+      ${t(it, 'detail')}
       <div class="mt-40">
         <a href="donate.html" class="btn btn-primary">${tt('initiative.supportBtn') || 'Support this initiative'}</a>
         <a href="initiatives.html" class="btn btn-outline" style="margin-left:12px;">${tt('initiative.allInitiatives') || '← All initiatives'}</a>
