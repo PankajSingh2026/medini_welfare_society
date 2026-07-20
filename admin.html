@@ -157,13 +157,21 @@
           <div><label for="iCategory">Category</label><input id="iCategory" placeholder="Education / Health / Livelihood..." required></div>
           <div><label for="iImage">Image path or URL</label><input id="iImage" placeholder="images/initiative-7.jpg or https://..."></div>
           <div><label for="iSummary">Summary (short, shown on cards)</label><textarea id="iSummary" rows="2" required></textarea></div>
-          <div><label for="iDetail">Detail (full write-up)</label><textarea id="iDetail" rows="6" required></textarea></div>
-          <div><label for="iImpact">Impact line</label><input id="iImpact" placeholder="e.g. 1,400+ children enrolled across 12 centers" required></div>
+          <div>
+            <label>Detail (full write-up)</label>
+            <div class="editor-toolbar" id="iDetailToolbar"></div>
+            <div id="iDetailEditor" contenteditable="true"></div>
+            <p class="form-note">Use the toolbar above to format text and insert images — same rich-text editor as the blog post body.</p>
+          </div>
           <hr style="margin:24px 0;border:none;border-top:1px solid var(--rule);">
           <p class="form-note" style="margin-bottom:12px;"><strong>Hindi version (optional)</strong> — leave blank to show the English version to Hindi-language visitors.</p>
           <div><label for="iTitleHi">Title (Hindi)</label><input id="iTitleHi"></div>
           <div><label for="iSummaryHi">Summary (Hindi)</label><textarea id="iSummaryHi" rows="2"></textarea></div>
-          <div><label for="iDetailHi">Detail (Hindi)</label><textarea id="iDetailHi" rows="6"></textarea></div>
+          <div>
+            <label>Detail (Hindi)</label>
+            <div class="editor-toolbar" id="iDetailToolbarHi"></div>
+            <div id="iDetailEditorHi" contenteditable="true"></div>
+          </div>
           <div class="flex-gap">
             <button type="submit" class="btn btn-primary">Save initiative</button>
             <button type="button" class="btn btn-outline" id="cancelInitiativeEditBtn">Clear / New</button>
@@ -554,10 +562,19 @@ const initiativesList = document.getElementById('initiativesList');
 const initiativeEditorTitle = document.getElementById('initiativeEditorTitle');
 const initiativeStatus = document.getElementById('initiativeStatus');
 let editingInitiativeId = null;
+// Same rich-text toolbar as the blog post editor, reused here — the "Detail"
+// field is now a contenteditable box (like the blog Body field) instead of
+// a plain textarea, and is saved/rendered as HTML the same way.
+const iDetailEditor = document.getElementById('iDetailEditor');
+const iDetailEditorHi = document.getElementById('iDetailEditorHi');
+wireToolbar(document.getElementById('iDetailToolbar'), iDetailEditor);
+wireToolbar(document.getElementById('iDetailToolbarHi'), iDetailEditorHi);
 function resetInitiativeForm(){
   editingInitiativeId = null;
   initiativeEditorTitle.textContent = 'New initiative';
   initiativeForm.reset();
+  iDetailEditor.innerHTML = '';
+  iDetailEditorHi.innerHTML = '';
   initiativeStatus.textContent = '';
 }
 document.getElementById('newInitiativeBtn').addEventListener('click', resetInitiativeForm);
@@ -607,11 +624,10 @@ function loadInitiativeIntoForm(it){
   document.getElementById('iCategory').value = it.category || '';
   document.getElementById('iImage').value = it.image || '';
   document.getElementById('iSummary').value = it.summary || '';
-  document.getElementById('iDetail').value = it.detail || '';
+  iDetailEditor.innerHTML = it.detail || '';
   document.getElementById('iTitleHi').value = it.titleHi || '';
   document.getElementById('iSummaryHi').value = it.summaryHi || '';
-  document.getElementById('iDetailHi').value = it.detailHi || '';
-  document.getElementById('iImpact').value = it.impact || '';
+  iDetailEditorHi.innerHTML = it.detailHi || '';
   window.scrollTo({top: 0, behavior:'smooth'});
 }
 initiativeForm.addEventListener('submit', async (e) => {
@@ -625,11 +641,10 @@ initiativeForm.addEventListener('submit', async (e) => {
     category: document.getElementById('iCategory').value.trim(),
     image: document.getElementById('iImage').value.trim() || 'images/initiative-1.jpg',
     summary: document.getElementById('iSummary').value.trim(),
-    detail: document.getElementById('iDetail').value.trim(),
-    impact: document.getElementById('iImpact').value.trim(),
+    detail: iDetailEditor.innerHTML,
     titleHi: document.getElementById('iTitleHi').value.trim(),
     summaryHi: document.getElementById('iSummaryHi').value.trim(),
-    detailHi: document.getElementById('iDetailHi').value.trim()
+    detailHi: iDetailEditorHi.innerHTML
   };
   try{
     await saveInitiativeToDB(initiative, editingInitiativeId);
