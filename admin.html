@@ -24,12 +24,17 @@
     padding:6px 10px;font-size:.85rem;cursor:pointer;font-family:var(--body);
   }
   .editor-toolbar button:hover{background:var(--paper-dim);}
-  #bodyEditor{
+  /* Was previously #bodyEditor (an ID selector), which only ever styled the
+     blog's English Body box — every other rich-text editor on this page
+     (blog Body Hindi, Notice body EN/HI, Initiative Detail EN/HI) rendered
+     with no border/padding/min-height at all, since none of them share that
+     one ID. Switched to a class so every rich-text box looks identical. */
+  .rich-editor{
     min-height:240px;border:1px solid var(--rule);border-radius:10px;
     padding:14px;background:var(--white);font-family:var(--body);font-size:.95rem;
     overflow-y:auto;
   }
-  #bodyEditor:focus{outline:2px solid var(--leaf);}
+  .rich-editor:focus{outline:2px solid var(--leaf);}
   .tab-bar{display:flex;gap:10px;margin-bottom:30px;}
   .tab-btn{
     border:1px solid var(--rule);background:var(--white);border-radius:30px;
@@ -111,7 +116,7 @@
           <div>
             <label>Body</label>
             <div class="editor-toolbar" id="bodyToolbar"></div>
-            <div id="bodyEditor" contenteditable="true"></div>
+            <div id="bodyEditor" class="rich-editor" contenteditable="true"></div>
             <p class="form-note">Use the toolbar above to format text and insert images — this is saved as the post body.</p>
           </div>
           <hr style="margin:24px 0;border:none;border-top:1px solid var(--rule);">
@@ -121,7 +126,7 @@
           <div>
             <label>Body (Hindi)</label>
             <div class="editor-toolbar" id="bodyToolbarHi"></div>
-            <div id="bodyEditorHi" contenteditable="true"></div>
+            <div id="bodyEditorHi" class="rich-editor" contenteditable="true"></div>
           </div>
           <div class="flex-gap">
             <button type="submit" class="btn btn-primary">Save post</button>
@@ -160,7 +165,7 @@
           <div>
             <label>Detail (full write-up)</label>
             <div class="editor-toolbar" id="iDetailToolbar"></div>
-            <div id="iDetailEditor" contenteditable="true"></div>
+            <div id="iDetailEditor" class="rich-editor" contenteditable="true"></div>
             <p class="form-note">Use the toolbar above to format text and insert images — same rich-text editor as the blog post body.</p>
           </div>
           <hr style="margin:24px 0;border:none;border-top:1px solid var(--rule);">
@@ -170,7 +175,7 @@
           <div>
             <label>Detail (Hindi)</label>
             <div class="editor-toolbar" id="iDetailToolbarHi"></div>
-            <div id="iDetailEditorHi" contenteditable="true"></div>
+            <div id="iDetailEditorHi" class="rich-editor" contenteditable="true"></div>
           </div>
           <div class="flex-gap">
             <button type="submit" class="btn btn-primary">Save initiative</button>
@@ -202,7 +207,7 @@
           <div>
             <label>Details</label>
             <div class="editor-toolbar" id="noticeBodyToolbar"></div>
-            <div id="noticeBodyEditor" contenteditable="true"></div>
+            <div id="noticeBodyEditor" class="rich-editor" contenteditable="true"></div>
             <p class="form-note">Use the toolbar above to format the notice text — this is saved as the notice body.</p>
           </div>
           <hr style="margin:24px 0;border:none;border-top:1px solid var(--rule);">
@@ -211,7 +216,7 @@
           <div>
             <label>Details (Hindi)</label>
             <div class="editor-toolbar" id="noticeBodyToolbarHi"></div>
-            <div id="noticeBodyEditorHi" contenteditable="true"></div>
+            <div id="noticeBodyEditorHi" class="rich-editor" contenteditable="true"></div>
           </div>
           <div class="flex-gap">
             <button type="submit" class="btn btn-primary">Save notice</button>
